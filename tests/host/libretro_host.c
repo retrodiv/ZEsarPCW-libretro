@@ -48,7 +48,6 @@
 #define DLERR()    "LoadLibrary failed"
 #else
 #include <dlfcn.h>
-extern int __lsan_do_recoverable_leak_check(void) __attribute__((weak));
 #define DLOPEN(p)  dlopen((p), RTLD_NOW | RTLD_LOCAL)
 #define DLSYM(h,n) dlsym((h), (n))
 #define DLCLOSE(h) dlclose(h)
@@ -1207,9 +1206,16 @@ int main(int argc, char **argv) {
     free(bench_state_blob); free(state_blob); free(g_last); free(g_maxframe);
     free(g_frame_fingerprints);
 #ifndef _WIN32
-    if (getenv("ZPCW_LSAN_BEFORE_DLCLOSE") && __lsan_do_recoverable_leak_check) {
-        int leaks = __lsan_do_recoverable_leak_check();
-        fprintf(stderr, "[host] pre-dlclose LSan result: %d\n", leaks);
+    if (getenv("ZPCW_LSAN_BEFORE_DLCLOSE")) {
+        /* LSan is optional; do not require its symbol when linking on macOS. */
+        void *process = DLOPEN(NULL);
+        int (*leak_check)(void) = process ? (int (*)(void))DLSYM(
+            process, "__lsan_do_recoverable_leak_check") : NULL;
+        if (leak_check) {
+            int leaks = leak_check();
+            fprintf(stderr, "[host] pre-dlclose LSan result: %d\n", leaks);
+        }
+        if (process) DLCLOSE(process);
     }
     if (getenv("ZPCW_DUMP_MAPS")) {
         FILE *maps = fopen("/proc/self/maps", "r");

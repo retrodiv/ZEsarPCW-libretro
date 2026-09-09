@@ -110,7 +110,8 @@ jobs:
         with:
           persist-credentials: false
       - name: Install pinned Android NDK
-        run: sdkmanager --sdk_root="$ANDROID_HOME" --install "ndk;$NDK_VERSION"
+        # The runner provides the command-line tools outside PATH.
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" --install "ndk;$NDK_VERSION"'
       - name: Build, check and package Android with corresponding source
         run: |
           NDK="$ANDROID_HOME/ndk/$NDK_VERSION"

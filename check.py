@@ -67,8 +67,8 @@ def check_metadata() -> None:
     for key, want in expected.items():
         if values.get(key) != want:
             fail(f"metadata {key!r}: got {values.get(key)!r}, expected {want!r}")
-    if "need_fullpath" in values or "database" in values:
-        fail("obsolete/unsupported metadata field remains")
+    if "need_fullpath" in values:
+        fail("metadata uses need_fullpath instead of needs_fullpath")
 
 
 def check_export_policy() -> None:

@@ -126,6 +126,27 @@ class MakeContracts(unittest.TestCase):
 
 
 class CheckerContracts(unittest.TestCase):
+    def test_optional_database_preserves_required_metadata_checks(self):
+        metadata = (ROOT / "zesarpcw_libretro.info").read_text()
+        # A future database contribution may add this standard libretro field;
+        # its presence must not prevent contributors from running make check.
+        metadata += '\ndatabase = "Amstrad - PCW"\n'
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            info = root / "zesarpcw_libretro.info"
+            info.write_text(metadata)
+            with patch.object(CHECK, "ROOT", root):
+                CHECK.check_metadata()
+                for invalid, message in (
+                    (metadata.replace('supported_extensions = "dsk|m3u"',
+                                      'supported_extensions = "rom"'), "supported_extensions"),
+                    (metadata + 'need_fullpath = "true"\n', "needs_fullpath"),
+                ):
+                    with self.subTest(message=message):
+                        info.write_text(invalid)
+                        with self.assertRaisesRegex(SystemExit, message):
+                            CHECK.check_metadata()
+
     def test_android_requires_arm64_and_16k_load_segments(self):
         def elf(align=16384, address=0, machine=183, kind=3, count=1):
             ident = b"\x7fELF\x02\x01\x01" + b"\0" * 9

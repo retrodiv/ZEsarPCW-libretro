@@ -115,6 +115,8 @@ It shows only the project-authored shell and keyboard artwork already described
 in these notices. The font retains the OpenPCW-OS/Microsoft MIT attribution;
 the Amstrad mark retains the hardware-identification notice in
 [AMSTRAD.md](AMSTRAD.md). No commercial application, private path or frontend
-chrome is included. The README displays the native pixels at the core's 4:3
-aspect ratio. Capture by retrodiv's project, 2026; distributed with the core
-under GPLv3, subject to the existing component notices.
+chrome is included. `docs/openpcw-osk.svg` embeds this PNG byte for byte in a
+720×540 viewport, so the README displays it at the core's 4:3 aspect ratio even
+when a Markdown renderer overrides HTML image heights. Capture by retrodiv's
+project, 2026; distributed with the core under GPLv3, subject to the existing
+component notices.

@@ -48,10 +48,10 @@ requires fresh validation. Physical PCW execution remains an intended target.
 See [`sources/openpcw-os/SOURCE.md`](sources/openpcw-os/SOURCE.md) for the
 canonical source pointer and pinned project identity.
 
-<img src="docs/openpcw-osk.png" alt="OpenPCW-OS prompt with the UK on-screen keyboard" width="640" height="480">
+<img src="docs/openpcw-osk.svg" alt="OpenPCW-OS prompt with the UK on-screen keyboard" width="640">
 
 OpenPCW-OS with the on-screen keyboard, displayed at the core's 4:3 aspect ratio.
-The image stores the unmodified native framebuffer; it contains no commercial game.
+The capture contains no commercial game.
 
 ## Install in RetroArch
 

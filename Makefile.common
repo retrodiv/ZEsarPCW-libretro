@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 retrodiv <retrodiv@proton.me>
+# Source list + includes for the generated ZEsarPCW repository.
+CORE_DIR ?= src
+
+include $(CORE_DIR)/libretro/libretro_sources.mk
+
+LIBRETRO_SRC := \
+  libretro/libretro.c \
+  libretro/scrlibretro.c \
+  libretro/audiolibretro.c \
+  libretro/pcw_audio.c \
+  libretro/pcw_engine.c \
+  libretro/pcw_boot.c \
+  libretro/pcw_log.c \
+  libretro/pcw_keyboard.c \
+  libretro/pcw_keyb2joypad.c \
+  libretro/pcw_osk.c \
+  libretro/pcw_disk.c \
+  libretro/pcw_state_rle.c \
+  libretro/pcw_zsf.c \
+  libretro/pcw_screen.c \
+  libretro/pcw_fdc_sound.c \
+  libretro/pcw_crop.c
+
+SOURCES_C := $(addprefix $(CORE_DIR)/, $(UPSTREAM_SRC) $(LIBRETRO_SRC) $(PLATFORM_SRC))
+
+INCFLAGS := \
+  -I$(CORE_DIR) \
+  -I$(CORE_DIR)/libretro \
+  -I$(CORE_DIR)/audio \
+  -I$(CORE_DIR)/cores \
+  -I$(CORE_DIR)/cpus \
+  -I$(CORE_DIR)/machines \
+  -I$(CORE_DIR)/storage \
+  -I$(CORE_DIR)/soundchips
+
+# Required by both the standalone Makefile and Android's ndk-build recipe.
+CORE_DEFINES := -DCOMPILE_LIBRETRO -D_LARGEFILE64_SOURCE=1
+CORE_COMMON_CFLAGS := -fsigned-char -fno-strict-aliasing -fno-common -Wno-unused-result \
+                      -fvisibility=hidden -ffunction-sections -fdata-sections -Werror

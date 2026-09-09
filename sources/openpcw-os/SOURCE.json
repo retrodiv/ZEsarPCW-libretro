@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "project": "OpenPCW-OS",
+  "version": "0.2.0",
+  "source_manifest_sha256": "65ff812a96527a9b5b7121039f27beeb2e6f043c070af24e51cb5e36cd15a663",
+  "release_checksums_sha256": "29a76dda77c54243c202ad280193d1c745b0aa7f583d8a3d2ecccc64dcf732f4",
+  "repository": "https://github.com/retrodiv/OpenPCW-OS",
+  "revision": "49bbbd078db93224736b60ab832b4cd8ab623da8"
+}

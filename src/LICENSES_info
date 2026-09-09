@@ -1,0 +1,29 @@
+Copyright (c) 2026 retrodiv <retrodiv@proton.me> (ZEsarPCW inventory and port annotations).
+
+ZEsarPCW embedded/libretro data:
+
+-Native PCW bootstrap
+libretro/pcw_boot.c implements the documented PCW 8256/8512 disk bootstrap
+interface in C. It is original ZEsarPCW port work under GPLv3, copyright
+(c) 2026 retrodiv <retrodiv@proton.me>. No Amstrad firmware is included.
+See docs/BOOTSTRAP.md for its functional basis and compatibility boundary.
+
+-OpenPCW-OS fallback environment and helper disc
+The standalone OpenPCW-OS project builds openpcw_os.dsk from its
+MIT-licensed assembly sources. Its source identity and release hashes are
+recorded in sources/openpcw-os/. The disk is embedded as a C array alongside
+the documented shell-ready address used for the media handoff.
+The display font derives from Microsoft's MIT-licensed MS-DOS 4.0 source.
+Preserve sources/openpcw-os/LICENSES.txt, which includes both upstream notices.
+The generator and C templates are port work under GPLv3; they do not change
+the MIT terms of the disk contents or integration metadata.
+
+-Floppy-drive sound samples
+Bundled as PCM arrays in libretro/pcw_fdc_samples.h. The header credits the
+samples to the PituKa / wiituka Amstrad CPC emulator by David Colmenero
+(D_Skywalk), distributed under GNU GPL v2 or later, using version 3 here.
+The editable WAV sources and generator are included under sources/fdc/.
+
+ZEsarPCW modification record, 2026-09-09: retrodiv updated this inventory
+to describe the data retained in the PCW libretro core. See the repository's
+README.md and licenses/MODIFICATIONS.md for component terms and port changes.

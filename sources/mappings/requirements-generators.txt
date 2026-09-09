@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 retrodiv <retrodiv@proton.me>
+# Pinned image library for byte-reproducible OSK skin generation and comparison.
+Pillow==12.1.1

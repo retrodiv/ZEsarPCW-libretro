@@ -1,0 +1,153 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 retrodiv <retrodiv@proton.me>
+name: build-and-test
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check build and packaging contracts
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
+      - name: Build, check and package with corresponding source
+        run: python3 package.py --platform linux-x86_64 --jobs "$(nproc)"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: zesarpcw_libretro-linux-x86_64-${{ github.sha }}
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0 # The distribution ZIP is already compressed.
+
+  linux-sanitizers:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: ASan and UBSan build
+        run: >-
+          make platform=unix-sanitize -j"$(nproc)"
+          CFLAGS='-O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer'
+          LDFLAGS='-fsanitize=address,undefined'
+      - name: Sanitized runtime checks
+        env:
+          ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+        run: python3 check.py --core ./zesarpcw_libretro.so --platform unix --sanitize --reloads 50
+
+  linux-tsan:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: ThreadSanitizer build
+        run: >-
+          make platform=unix-tsan -j"$(nproc)"
+          CFLAGS='-O1 -g -fsanitize=thread -fno-omit-frame-pointer'
+          LDFLAGS='-fsanitize=thread'
+      - name: ThreadSanitizer lifecycle checks
+        env:
+          TSAN_OPTIONS: halt_on_error=1:second_deadlock_stack=1
+        # Ubuntu 24.04's TSan can collide with high-entropy ASLR before tests start.
+        # Use a fixed layout only for this test process and its children.
+        run: setarch "$(uname -m)" -R python3 check.py --core ./zesarpcw_libretro.so --platform unix --tsan --reloads 50
+
+  windows-cross:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install mingw-w64
+        run: sudo apt-get update && sudo apt-get install -y gcc-mingw-w64-x86-64
+      - name: Build, check and package Windows with corresponding source
+        run: python3 package.py --platform windows-x86_64 --jobs "$(nproc)"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: zesarpcw_libretro-windows-x86_64-${{ github.sha }}
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0 # The distribution ZIP is already compressed.
+
+  linux-aarch64-cross:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install AArch64 compiler
+        run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
+      - name: Build, check and package AArch64 with corresponding source
+        run: python3 package.py --platform linux-aarch64 --jobs "$(nproc)"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: zesarpcw_libretro-linux-aarch64-${{ github.sha }}
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0 # The distribution ZIP is already compressed.
+
+  android-arm64-cross:
+    runs-on: ubuntu-24.04
+    env:
+      NDK_VERSION: 26.3.11579264
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install pinned Android NDK
+        run: sdkmanager --sdk_root="$ANDROID_HOME" --install "ndk;$NDK_VERSION"
+      - name: Build, check and package Android with corresponding source
+        run: |
+          NDK="$ANDROID_HOME/ndk/$NDK_VERSION"
+          CC="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang"
+          STRIP="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip"
+          python3 package.py --platform android-arm64 --cc "$CC" --strip "$STRIP" --jobs "$(nproc)"
+      - name: Check the Android buildbot recipe and 16 KiB ELF alignment
+        run: |
+          "$ANDROID_HOME/ndk/$NDK_VERSION/ndk-build" -C jni APP_ABI=arm64-v8a -j"$(nproc)"
+          python3 check.py --core ./libs/arm64-v8a/libretro.so --platform android-arm64
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: zesarpcw_libretro-android-arm64-${{ github.sha }}
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0 # The distribution ZIP is already compressed.
+
+  macos:
+    strategy:
+      matrix:
+        include:
+          - runner: macos-15-intel
+            platform: macos-x86_64
+          - runner: macos-15
+            platform: macos-arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build, check and package macOS with corresponding source
+        run: python3 package.py --platform ${{ matrix.platform }} --jobs "$(sysctl -n hw.ncpu)"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: zesarpcw_libretro-${{ matrix.platform }}-${{ github.sha }}
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0 # The distribution ZIP is already compressed.

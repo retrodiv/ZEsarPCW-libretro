@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 retrodiv <retrodiv@proton.me>
+# Buildbot integration for git.libretro.com; includes resolve on that instance.
+# These jobs produce buildbot libraries. See PACKAGING.md for release packages.
+.core-defs:
+  variables:
+    CORENAME: zesarpcw
+    MAKEFILE_PATH: .
+    JNI_PATH: .
+
+include:
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/linux-x64.yml'
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/windows-x64-mingw.yml'
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/osx-x64.yml'
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/osx-arm64.yml'
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/android-jni.yml'
+
+stages:
+  - build-prepare
+  - build-shared
+  - build-static
+
+libretro-build-linux-x64:
+  extends: [.libretro-linux-x64-make-default, .core-defs]
+
+libretro-build-windows-x64:
+  extends: [.libretro-windows-x64-mingw-make-default, .core-defs]
+
+libretro-build-osx-x64:
+  extends: [.libretro-osx-x64-make-default, .core-defs]
+
+libretro-build-osx-arm64:
+  extends: [.libretro-osx-arm64-make-default, .core-defs]
+
+libretro-build-android-arm64:
+  extends: [.libretro-android-jni-arm64-v8a, .core-defs]

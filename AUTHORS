@@ -1,0 +1,46 @@
+SPDX-License-Identifier: GPL-3.0-only
+Copyright (c) 2026 retrodiv <retrodiv@proton.me>
+
+ZEsarPCW -- an Amstrad PCW libretro core
+=========================================
+
+Upstream emulator
+-----------------
+ZEsarUX: Cesar Hernandez Bano and contributors
+https://github.com/chernandezba/zesarux
+GNU General Public License v3 or later, as stated in the upstream source headers.
+
+ZEsarPCW libretro port
+----------------------
+retrodiv <retrodiv@proton.me>: libretro port, PCW FDC/uPD765 fidelity work, on-screen keyboard,
+floppy sound, per-title gamepad mappings, crop, colour modes, save states and
+build tooling, and the native PCW sector bootstrap (GPLv3). The UK/US on-screen-keyboard pixel art, gamepad bindings
+and port-authored mapping annotations in `sources/mappings/` are port work under
+GPLv3. The initial catalogue identifiers, titles and disc fingerprints derive
+from MAME contributors' PCW software list, which carries a CC0-1.0 notice.
+The verified reference and maintained additions are recorded in
+`licenses/MAPPINGS.md`. The port's changes to the retained ZEsarUX units and its
+PCW-specific replacements are recorded in `licenses/MODIFICATIONS.md`.
+
+libretro API
+------------
+`src/libretro/libretro.h` is the unmodified canonical header pinned to the
+RetroArch commit/hash recorded in `licenses/PROVENANCE.md`; its permissive notice
+is preserved. Port-authored glue is GPLv3; generated third-party data retains
+the terms described below and in `licenses/PROVENANCE.md`.
+
+Embedded data
+-------------
+The OpenPCW-OS helper disk (https://github.com/retrodiv/OpenPCW-OS)
+is built from retrodiv <retrodiv@proton.me>'s original MIT-licensed sources. Its display
+face uses Microsoft's MIT-licensed MS-DOS 4.0 CP437 8x8 source; the exact source,
+notice, commit, transformations and hashes are recorded in the same provenance
+document.
+The complete upstream distribution notices are preserved in
+`sources/openpcw-os/LICENSES.txt` and accompany the embedded disk.
+The floppy PCM data and its exact WAV source in `sources/fdc/` derive from
+PituKa/wiituka by David Colmenero (D_Skywalk), GPLv2-or-later, distributed here
+using GPLv3. The pinned source headers preserve his copyright and licence
+notice; the extracted WAV sources and regeneration tool are bundled in
+`sources/fdc/`. Exact provenance, hashes and transformations are recorded in
+`licenses/PROVENANCE.md`.

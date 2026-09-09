@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 retrodiv <retrodiv@proton.me>
+# ZEsarPCW Custom Keyboard Bindings: load in Controls > Manage Remap Files.
+# RetroArch keyboard keycodes; the core translates these to PCW keys.
+input_libretro_device_p1 = "3"
+input_player1_analog_dpad_mode = "0"
+input_remap_port_p1 = "0"
+input_player1_key_left = "111"
+input_player1_key_right = "112"
+input_player1_key_up = "113"
+input_player1_key_down = "97"
+input_player1_key_start = "13"
+input_player1_key_b = "32"
+input_player1_key_a = "13"
+input_player1_key_y = "305"
+input_player1_key_x = "304"
+input_player1_key_select = "9"
+input_player1_key_l = "27"
+input_player1_key_r = "306"
+input_player1_key_l2 = "0"
+input_player1_key_r2 = "0"
+input_player1_key_l3 = "0"
+input_player1_key_r3 = "27"

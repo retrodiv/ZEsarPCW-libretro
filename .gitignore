@@ -1,0 +1,62 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 retrodiv <retrodiv@proton.me>
+
+# Compiled objects, libraries and debug symbols.
+*.o
+*.obj
+*.d
+*.so
+*.so.*
+*.dll
+*.dylib
+*.a
+*.lib
+*.exe
+*.pdb
+*.ilk
+*.exp
+*.debug
+*.unstripped
+*.dSYM/
+
+# Build, packaging and native toolchain output.
+build/
+builds/
+dist/
+obj/
+libs/
+.build/
+.cxx/
+.externalNativeBuild/
+
+# Python environments and caches.
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Local editor, OS and workflow files.
+.idea/
+.vscode/
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+*~
+*.swp
+*.swo
+*.tmp
+*.log
+/AGENTS.md
+
+# Local environment settings and credentials.
+.env
+.env.*
+!.env.example
+!.env.sample

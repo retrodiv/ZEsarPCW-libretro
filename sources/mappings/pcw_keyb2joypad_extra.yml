@@ -1,0 +1,763 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 retrodiv <retrodiv@proton.me>
+# pcw_keyb2joypad_extra.yml -- hand-maintained additions to the per-game
+# gamepad->PCW-key map, merged by pcw_keyb2joypad_gen.py during C generation.
+# ALIAS: an existing `id` plus `sha1_alt` adds fingerprints and inherits controls.
+# NEW: a new `id` supplies its name, hashes, profile and input_pad_* bindings.
+# These records cover alternate disc images and colour editions maintained by
+# the port. See licenses/MAPPINGS.md for metadata provenance.
+
+# ---------------------------------------------------------------------------
+# ALIASES -- alternate dumps of already-mapped titles (inherit their controls)
+# ---------------------------------------------------------------------------
+
+# 3D Clock Chess
+- id: 3dcchess
+  sha1_alt: 129a4af3ee5a8325aca383d6fc63e51ebc523234
+
+# ACE: Air Combat Emulator
+- id: ace
+  sha1_alt: 8450cdb7dd83258d42559e5cee4f92b11e5b1d19
+
+# Apple Jack
+- id: applejck
+  sha1_alt: f0d21562991ac377150448f18545d13518c6ae68
+
+# Heathrow ATC & Southern Belle
+- id: atcbelle
+  sha1_alt: d13886a345970565f46d4e76f5b2ceb4af2974a2,fce882d2602c6c38133ee4e0b6232a2341d78dd1,3ab7cd8876d4171c5764ce860d335868b333e75b
+
+# Ballyhoo
+- id: ballyhoo
+  sha1_alt: df5fbdfa253d873b76f4ee85d61a1b1e89db34c0
+
+# Batman: The Caped Crusader… (Batman 1986)
+- id: batman
+  sha1_alt: 996881afda9d39301f9721fa4e1cc8d53342f646
+
+# Bob Winner
+- id: bobwinnr
+  sha1_alt: 4f7fcea1b9defb767bfc823b9a950a1d217ec44d,ee086f0d87740e5d06fcff11b68d8dfa12e851e4,147c911e4f94d8cafdb4adb971f0ba9a7ead6140
+
+# Catch 23
+- id: catch23
+  sha1_alt: b38a0d7cac63b87540564a4a611ddbf18c197608
+
+# The Complete Home Entertainment Centre
+- id: chec
+  sha1_alt: d4deee489bf0731abec09db2c66f669c0b1de4cb
+
+# Classic Games I
+- id: clasgam1
+  sha1_alt: cccd3038dc4a3d3e3e7da15e495579383ece9121
+
+# Classic Games II
+- id: clasgam2
+  sha1_alt: 6f1d0d5f8f95341702a0fda0ba03de86c8c88bf8
+
+# Colossus 4 Bridge
+- id: colos4br
+  sha1_alt: 2450e5abd987a614505a3a992373a29498f34f27,6f76b3793f09d360cb46f174b62a2c73b90836d7
+
+# Colossus 4 Chess
+- id: colos4ch
+  sha1_alt: 28871937b7dd5af4f2a6a9ef7aae3ba730e2d7e0,6091f95ed2e53d7e3f7129a4d95d2e68dc3da3a6
+
+# Conecta 4
+- id: conecta4
+  sha1_alt: 273910789d03bd9ed2ae56dbbcb04af188d26779
+
+# Cyrus II Chess
+- id: cyrus2ch
+  sha1_alt: 3d54c96a4fe2def98fb7b87a40f9013c79bac7b1,04c1b8d3afdba375e8c5938c30662e50f0768368
+
+# Enchanter
+- id: enchant
+  sha1_alt: aada5616cba590dfc26a97b957b5e625ee8cc31a,1923ffc56818e567ea0ec6b3f5682f26a0e74265
+
+# Formula 1
+- id: f1
+  sha1_alt: 0b50444bb2a4d454fc55431ec2715ba3a183b6b7
+
+# Fairlight: A Prelude
+- id: fairlig
+  sha1_alt: e8c8631dc1c9391f56b65ebe4bb883b804bd47b9
+
+# Fairlight 2: A Trail of Darkness
+- id: fairlig2
+  sha1_alt: f81e5aff25c47c745892fcf61e91b22f5db7e6e9
+
+# Brian Clough's Football Fortunes
+- id: football
+  sha1_alt: de856f200bd71511a97aed3b2d2afc995656f93a
+
+# The Guild of Thieves
+- id: got
+  sha1_alt: f3fc3e8485a46c5b06a5c0a087d99907e3e31741
+
+# Gnome Ranger
+- id: granger
+  sha1_alt: 8f909333977584faa49d780decabfd79a53b8617,fdbffa9c60cecaba52f4a5b1b1249da172af3c63
+
+# Head Over Heels
+- id: headover
+  sha1_alt: c0e366d6d6dfbdd3d9af2a3811458eaeac9a03c2
+
+# The Hitchhiker's Guide to the Galaxy
+- id: hitchhik
+  sha1_alt: c72cd215fcf53633fabc4bf3de1832afc233a5f0,662e7f8f45eb4a4f803e1bd566a7f4195e7beddf
+
+# Hollywood Hijinx
+- id: hollyhij
+  sha1_alt: ad85677aae22b450bc9b5d2cee329697a60f780d,10c03fe53cc70fa96d97900379b63f8f9b885196
+
+# Ingrid's Back!
+- id: ingrid
+  sha1_alt: c6c93b0a470b82f562b0dec8bed3220d6306e932,c15eb32cc8c21ab3dc5919d3699ffbf707a52d6f,d401c963d2fd9a7cd80641e5c5ea34ffe54ae8a7
+
+# Jewels of Darkness
+- id: jeweldrk
+  sha1_alt: 65437468836d20f333c762511aa559f2c385f3d7,3e9d33929e60699c33086f29608f2c8ab7f32bd5
+
+# Jinxter
+- id: jinxter
+  sha1_alt: 272a101930c5ace571d6f2114f8252b27476c26b
+
+# Lancelot
+- id: lancelot
+  sha1_alt: 6b6b28ddeaa915448852133beac66016289415e7,5d4ad3c03b622e12b208427a62de42ae51d99b72
+
+# Leaderboard Golf
+- id: leadbg
+  sha1_alt: e5a1fd3d773d3dc92f3c6182a20cc0ad29827baa
+
+# Leather Goddesses of Phobos
+- id: leatherg
+  sha1_alt: d4fd8496bbfd4c159fbdfa849d598e93e9853a0b
+
+# Lord of the Rings
+- id: lotr
+  sha1_alt: 48536078d54d1324944d8ca2402f072afc549e75
+
+# The Lurking Horror
+- id: lurkinh
+  sha1_alt: a41da45d9f9fccbb79bf4a85027041bc62053dfa
+
+# Magic Maths
+- id: magicmat
+  sha1_alt: 49dae0dc835d8e49bfc78deef037d824512bcec2
+
+# Master Mind
+- id: mastmind
+  sha1_alt: 41676624b74bb752cd47bbe38b24b87aaea2fe34
+
+# Moonmist
+- id: moonmist
+  sha1_alt: 47b19c936d94fc50c0f8766dcb2218688fad3993
+
+# Mortadelo y Filemón II
+- id: mortadl2
+  sha1_alt: 188b720f2e0ce2ba0571afd8f020495333314fa8
+
+# Mundial de Fútbol
+- id: mundial
+  sha1_alt: f9dc38713fc38131b5d26dca50b4db3543b70385
+
+# Mythos
+- id: mythos
+  sha1_alt: 7044bf80b57accd0153efa4412c40bd8e5353cac
+
+# Knight Orc
+- id: orc
+  sha1_alt: 81f1d22f0bf25aea25a578ad09855b90cd9ef5b8,1b80d6f13bf3704805e72260a30d92a7449acdf8,20063d4fa35fe1d1c92895c7b8567e14a8fd7d46
+
+# The Pawn
+- id: pawn
+  sha1_alt: 16ad0f1688e452c2fe5643db4a0805beb102f7a5
+
+# Planetfall
+- id: planetfa
+  sha1_alt: adca5ae970e7307a43da21657d3a63e60ae4d4a3
+
+# Plundered Hearts
+- id: plundhrt
+  sha1_alt: 50f5d8e916ffcf27287d59e54cc64946f3299222
+
+# PSI-5 Trading Company
+- id: psi5
+  sha1_alt: 20afc2929af82c97cb5b919762ba058cd3ba91e7
+
+# Scapeghost
+- id: scapegh
+  sha1_alt: f0527e29352942efc3c5eed18eb11e85ab1c7090
+
+# Computer Scrabble
+- id: scrabble
+  sha1_alt: b5f8da8f921e4f2aece6ad230b69a26dec308187,48d4badec78bab59e302eccf048abf257f2975a3
+
+# Seastalker
+- id: seastalk
+  sha1_alt: 542f15c930aa949771af472de3a6cdd45d16172b
+
+# Sir Lancelot
+- id: sirlance
+  sha1_alt: 7da7714ba71586b9ca0851392d39e06b399ceee2
+
+# Sliding Puzzle
+- id: slidpuzl
+  sha1_alt: c4905d9a4e62791af2577be8ddb83593796f8d35
+
+# Steve Davis Snooker / Billiards & Pool
+- id: snooker
+  sha1_alt: 3cbd592bd77693257004f34a66bb0f9866d9426b
+
+# Solitario
+- id: solitar
+  sha1_alt: 4b2135928a9c14405d9643c44507232a2cfb6a50
+
+# Sorcerer
+- id: sorcerer
+  sha1_alt: 602f8102dad8737933806e5d79d1e4284b5c9adb
+
+# Spellbreaker
+- id: spellbrk
+  sha1_alt: a7020067b399d52c1ea3f44382c8f905cef55c09
+
+# Sporting Triangles
+- id: sporttri
+  sha1_alt: 56921c8d71aaa91ee9a38d9386241915ac6653b4
+
+# Starglider
+- id: starglid
+  sha1_alt: 8af13711c1b179abfc9ce6ddd4a70a1109659c35
+
+# Starcross
+- id: starx
+  sha1_alt: 5c428ad925281f491dcfed7ac5d31dbc0793fb55
+
+# Stationfall
+- id: stationf
+  sha1_alt: 1c5835ed876d54edf44019a7797c234a76500946
+
+# Strike Force Harrier
+- id: strikefh
+  sha1_alt: b7bb880303d0996a22a4d323748ba4ffb50ef568
+
+# Strip Poker
+- id: strpoker
+  sha1_alt: e0a2d74e1031100db9a0ccb8f9c01ebcdc996287,7de9c0db1b47f66b2906147d5eac1ef69c8899de
+
+# Suspect
+- id: suspect
+  sha1_alt: 370eb8f5996356bfed25531dc0768d5dfdaeea55
+
+# Suspended
+- id: suspend
+  sha1_alt: de9d881b60a7579ab4d3e61016e24c044b561929,90a252227a426dd9cf534e027ec4450ea4792768
+
+# Tau Ceti
+- id: tauceti3
+  sha1_alt: 7a4b2a522c6f011e92e9f6615e425ce7dbfb5067
+
+# Los Templos Sagrados
+- id: templos
+  sha1_alt: 931ab3f372d5eaa3b7b32e56e2dca793468b0edf
+
+# Time and Magik
+- id: timemag
+  sha1_alt: bde5c0a256888f69e397c60d417322300bab5ab6
+
+# Trivial Pursuit
+- id: trivial
+  sha1_alt: 811d7759fc0565ce97268c2dc189797a28501135,e01c8afcb4fa3adafa9095a8908f2c08b1ed92b1,e08883dcd27a982ed784a7f62cd7b92aeac7714c
+
+# Tuma-7
+- id: tuma7
+  sha1_alt: 9e0598007550455631af9eba65b85b420e45d9ad
+
+# Verbiage
+- id: verbiage
+  sha1_alt: ff68a91f6e7872dd0e740b927dec2ec8e4dc1bee
+
+# Wishbringer
+- id: wishbrin
+  sha1_alt: d8add474550b8370ec8df21ff7e33fe8994c1054
+
+# The Witness
+- id: witness
+  sha1_alt: a7c10b724634579377150f9f740b0a55229c328c
+
+# Zork I: The Great Underground Empire
+- id: zork1
+  sha1_alt: fbb3c137248e05ffbec3619f70f8a7335f04670c
+
+# Zork II: The Wizard of Frobozz
+- id: zork2
+  sha1_alt: b290f981226a868c7b2431bf5b4cbc515b715c60
+
+# Zork III: The Dungeon Master
+- id: zork3
+  sha1_alt: 78e4238fc6d16779ea45dc5a7b6dd95b95b14a1c
+
+
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# NEW TITLES -- absent from the MAME `pcw` software list. conf low/medium =
+# controls inferred by genre / documented original (CPC/Spectrum); the PCW
+# homebrew ports advertise joystick support but rarely publish their key map.
+# ---------------------------------------------------------------------------
+
+# Astro Marine Corps  (AMC.dsk, AMC2.dsk)
+- id: amc
+  sha1: ac327569eef9026a2503c62b99753839a56e154b
+  sha1_alt: d0605a401231f4b5fcc57fa9e5a830519c2f4cb9
+  name: "Astro Marine Corps"
+  conf: high
+  profile: game
+  input_pad_up: Jump (q)
+  input_pad_down: Crouch (a)
+  input_pad_left: Move left (o)
+  input_pad_right: Move right (p)
+  input_pad_b: Jump (q)
+  input_pad_a: Fire (SPACE)
+  input_pad_y: Grenade (m)
+  input_pad_x: Pause (h)
+  input_pad_l: Music (5)
+  input_pad_r: Color mode (TAB)
+  input_pad_start: 1
+  input_pad_r3: Quit to Title (STOP)
+
+# Barbarian  (Barbarian.dsk)
+- id: barbarian
+  sha1: 358fb6d4b6eaf6ea1a634c8f906d381f9f34523b
+  name: "Barbarian"
+  conf: high
+  profile: game
+  input_pad_up: Up (q)
+  input_pad_down: Down (a)
+  input_pad_left: Left (o)
+  input_pad_right: Right (p)
+  input_pad_b: Attack / Hit (SPACE)
+  input_pad_x: Pause (h)
+  input_pad_start: One player / Keyboard (1)
+  input_pad_r3: Quit to Title (EXIT)
+
+# Blackstar  (Blackstar.dsk)
+- id: blackst
+  sha1: f06d05e677f436fdca461dbf6ec4080b44bcb8cf
+  name: "Blackstar"
+  conf: low
+  profile: text
+  input_pad_up: UP
+  input_pad_down: DOWN
+  input_pad_left: LEFT
+  input_pad_right: RIGHT
+  input_pad_b: RETURN
+  input_pad_a: SPACE
+  input_pad_y: DEL
+  input_pad_start: Start (RETURN)
+  input_pad_r3: Quit to Title (EXIT)
+
+# Blagger  (Blagger Boot.dsk, Blagger.dsk)
+- id: blagger
+  sha1: a8a3c67fc08cc5298fb637a6432a35b7d45d80e9
+  sha1_alt: 6a04798c09c6035720f9e6893007dcdd57c6e563
+  name: "Blagger"
+  conf: medium
+  profile: game
+  input_pad_up: UP
+  input_pad_down: DOWN
+  input_pad_left: LEFT
+  input_pad_right: RIGHT
+  input_pad_b: Jump (SPACE)
+  input_pad_x: Pause (CTRL)
+  input_pad_start: Start (RETURN)
+  input_pad_r3: Quit to Title (EXIT)
+
+# Capitán Trueno  (capitan1.dsk, capitan2.dsk)
+- id: captruen
+  sha1: c6d6eb8bad65eb649d77af9b242be1081d15e83a
+  sha1_alt: e596a659fe43f1fb8b828774aad379a9910c0ce7
+  name: "Capitán Trueno"
+  conf: high
+  profile: game
+  input_pad_up: Jump (q)
+  input_pad_down: Down (a)
+  input_pad_left: Move left (o)
+  input_pad_right: Move right (p)
+  input_pad_b: Jump (q)
+  input_pad_a: Punch (SPACE)
+  input_pad_y: Pause (SHIFT)
+  input_pad_x: Capitan (s)
+  input_pad_l: Music (5)
+  input_pad_r: Color mode (4)
+  input_pad_l2: Crispin (h)
+  input_pad_r2: Goliath (g)
+  input_pad_start: Keyboard / Start (1)
+
+# Cetro del Sol  (Cetro Del Sol A.dsk, Cetro Del Sol B.dsk)
+- id: cetro
+  sha1: 4c66fe4e9962e8683351bf850fd7b4897e9d7328
+  sha1_alt: adb9330766dfc7fed3accea0242d20ba7f279fba
+  name: "Cetro del Sol"
+  conf: medium
+  profile: text
+  input_pad_up: UP
+  input_pad_down: DOWN
+  input_pad_left: LEFT
+  input_pad_right: RIGHT
+  input_pad_b: RETURN
+  input_pad_a: SPACE
+  input_pad_y: DEL
+  input_pad_start: Start (RETURN)
+  input_pad_r3: Quit to Title (EXIT)
+
+# Coliseum  (Coliseum.DSK)
+- id: coliseum
+  sha1: df72eb842711f597c5e3f310afff8504c8c0adbd
+  name: "Coliseum"
+  conf: high
+  profile: game
+  input_pad_up: Move up (q)
+  input_pad_down: Move down (a)
+  input_pad_left: Decelerate (o)
+  input_pad_right: Accelerate (p)
+  input_pad_b: Fight (SPACE)
+  input_pad_a: Fight (SPACE)
+  input_pad_x: Pause (h)
+  input_pad_r: Music (3)
+  input_pad_start: Play (0)
+
+# Cutthroats  (Cutthroats Boot.dsk, Cutthroats.dsk)
+- id: cutthroa
+  sha1: acd52299f5160547df787ff67001ed6b1f54a22b
+  sha1_alt: edabb8f477009c661d20937205ddac2200d2e129
+  name: "Cutthroats"
+  conf: medium
+  profile: text
+  input_pad_up: UP
+  input_pad_down: DOWN
+  input_pad_left: LEFT
+  input_pad_right: RIGHT
+  input_pad_b: RETURN
+  input_pad_a: SPACE
+  input_pad_y: DEL
+  input_pad_start: Start (RETURN)
+  input_pad_r3: Quit to Title (EXIT)
+
+# Dam Defender  (Dam Defender.dsk)
+- id: damdef
+  sha1: b4974dc5df533262a15c3001d40acb752b50ee9a
+  name: "Dam Defender"
+  conf: low
+  profile: game
+  input_pad_up: UP
+  input_pad_down: DOWN
+  input_pad_left: LEFT
+  input_pad_right: RIGHT
+  input_pad_b: Fire (SPACE)
+  input_pad_x: Pause (CTRL)
+  input_pad_start: Start (RETURN)
+  input_pad_r3: Quit to Title (EXIT)
+
+# Danger UXB  (Danger UXB.dsk)
+- id: dangruxb
+  sha1: 686ae25de4a3a0794be09b64f3c7165226f3272f
+  name: "Danger UXB"
+  conf: low
+  profile: game
+  input_pad_up: UP
+  input_pad_down: DOWN
+  input_pad_left: LEFT
+  input_pad_right: RIGHT
+  input_pad_b: Defuse / Enter (RETURN)
+  input_pad_a: Slide row (SPACE)
+  input_pad_x: Pause (CTRL)
+  input_pad_start: Start (RETURN)
+  input_pad_r3: Quit to Title (EXIT)
+
+# Elf  (Elf Boot.dsk, Elf.dsk)
+- id: elf
+  sha1: c81588d0a1664fe3209889294ace276d9a2c307d
+  sha1_alt: aea06d6bd14d956ade6adb79946bac5a5be66f5e
+  name: "Elf"
+  conf: medium
+  profile: game
+  input_pad_up: UP
+  input_pad_down: DOWN
+  input_pad_left: LEFT
+  input_pad_right: RIGHT
+  input_pad_b: Fire / Spell (SPACE)
+  input_pad_a: Pick up / Use object (RETURN)
+  input_pad_x: Pause (CTRL)
+  input_pad_start: Start (RETURN)
+  input_pad_r3: Quit to Title (EXIT)
+
+# Fruity Frank  (Fruity Frank.dsk)
+- id: fruityfr
+  sha1: f164f19978088a4571b3a8df64b4ed241f742a4e
+  name: "Fruity Frank"
+  conf: medium
+  profile: game
+  input_pad_up: UP
+  input_pad_down: DOWN
+  input_pad_left: LEFT
+  input_pad_right: RIGHT
+  input_pad_b: Fire seed (SPACE)
+  input_pad_x: Pause (CTRL)
+  input_pad_start: Start (RETURN)
+  input_pad_r3: Quit to Title (EXIT)
+
+# Hundra  (Hundra.dsk)
+- id: hundra
+  sha1: ae4a3ef372b697958594a4348a7a3a5a42aaa33b
+  name: "Hundra"
+  conf: high
+  profile: game
+  input_pad_up: Jump (q)
+  input_pad_left: Move left (o)
+  input_pad_right: Move right (p)
+  input_pad_b: Jump (q)
+  input_pad_a: Throw axe (SPACE)
+  input_pad_y: Pause (h)
+  input_pad_start: Play (0)
+  input_pad_r3: Quit to Title (g)
+
+# Jetpac (ASCII)  (Jetpack ASCII.dsk)
+- id: jetpasc
+  sha1: d78ee5863b70b0169875c69a61b8acfe09becf65
+  name: "Jetpac (ASCII)"
+  conf: low
+  profile: game
+  input_pad_up: UP
+  input_pad_down: DOWN
+  input_pad_left: LEFT
+  input_pad_right: RIGHT
+  input_pad_b: Fire (SPACE)
+  input_pad_a: Propulsion (UP)
+  input_pad_x: Pause (CTRL)
+  input_pad_start: Start (RETURN)
+  input_pad_r3: Quit to Title (EXIT)
+
+# Mad Mix Game  (Madmix.dsk)
+- id: madmix
+  sha1: 83f8ab9591855b8731c9a98ba41789c114b5ca32
+  name: "Mad Mix Game"
+  conf: high
+  profile: game
+  input_pad_up: Move up (q)
+  input_pad_down: Move down (a)
+  input_pad_left: Move left (o)
+  input_pad_right: Move right (p)
+  input_pad_b: Fire (SPACE)
+  input_pad_y: 2 colors (1)
+  input_pad_x: Pause (h)
+  input_pad_l: 4 colors (2)
+  input_pad_r: 16 colors (3)
+  input_pad_start: Play (0)
+
+# Pac-Mania  (PacMania.dsk)
+- id: pacmania
+  sha1: 9e46f1de7b06ea23f42b8879efee7f7b6323d0d1
+  name: "Pac-Mania"
+  conf: medium
+  profile: game
+  input_pad_up: UP
+  input_pad_down: DOWN
+  input_pad_left: LEFT
+  input_pad_right: RIGHT
+  input_pad_b: Jump (SPACE)
+  input_pad_x: Pause (CTRL)
+  input_pad_start: Start (RETURN)
+  input_pad_r3: Quit to Title (EXIT)
+
+# Phantis (Game Over II)  (PhantisDoble.dsk)
+- id: phantis
+  sha1: 520242af8bae851e91dac19ef5b5ebf8ca11da9f
+  name: "Phantis (Game Over II)"
+  conf: high
+  profile: game
+  input_pad_up: Move up (q)
+  input_pad_down: Move down (a)
+  input_pad_left: Move left (o)
+  input_pad_right: Move right (p)
+  input_pad_b: Fire (SPACE)
+  input_pad_start: Start (e)
+
+# PantaVisor  (PantaVisor.dsk)
+- id: pantavis
+  sha1: 1b681a7df4ce7954095fdeac2d2a9e48851c6ebb
+  name: "PantaVisor"
+  conf: high
+  profile: text
+  input_pad_up: UP
+  input_pad_down: DOWN
+  input_pad_left: LEFT
+  input_pad_right: RIGHT
+  input_pad_b: RETURN
+  input_pad_a: SPACE
+  input_pad_y: DEL
+  input_pad_start: RETURN
+
+# PCW Plus Test  (PlusTest.dsk)
+- id: plustest
+  sha1: 1d4eed3b6c8f41ee63ee68a89d27112aa94d7e13
+  name: "PCW Plus Test"
+  conf: high
+  profile: program
+  input_pad_b: Change graphics mode (TAB)
+  input_pad_a: Show 24-bit palette (1)
+  input_pad_y: Run colour test (2)
+  input_pad_x: Run no-sound test (3)
+
+# Robots  (Robots.dsk)
+- id: robots
+  sha1: 5f477d71ffb05ebbda869f334ca904a04e856ea7
+  name: "Robots"
+  conf: medium
+  profile: game
+  input_pad_up: UP
+  input_pad_down: DOWN
+  input_pad_left: LEFT
+  input_pad_right: RIGHT
+  input_pad_b: Teleport (SPACE)
+  input_pad_a: Wait (RETURN)
+  input_pad_x: Pause (CTRL)
+  input_pad_start: Start (RETURN)
+  input_pad_r3: Quit to Title (EXIT)
+
+# Sapiens  (Sapiens.dsk)
+- id: sapiens
+  sha1: 369bbe5b8b7fa32f920df8449107d8a772c0cdf1
+  name: "Sapiens"
+  conf: low
+  profile: text
+  input_pad_up: UP
+  input_pad_down: DOWN
+  input_pad_left: LEFT
+  input_pad_right: RIGHT
+  input_pad_b: RETURN
+  input_pad_a: SPACE
+  input_pad_y: DEL
+  input_pad_start: Start (RETURN)
+  input_pad_r3: Quit to Title (EXIT)
+
+# Silicon Dreams  (Silicon Dreams Boot.dsk, Silicon Dreams.dsk)
+- id: silicond
+  sha1: bf7d074a5a9b34ff015cc6a416a9a40f75bab111
+  sha1_alt: 690a819df5854e01d7c8c8e945d5f60d1bc96471
+  name: "Silicon Dreams"
+  conf: medium
+  profile: text
+  input_pad_up: UP
+  input_pad_down: DOWN
+  input_pad_left: LEFT
+  input_pad_right: RIGHT
+  input_pad_b: RETURN
+  input_pad_a: SPACE
+  input_pad_y: DEL
+  input_pad_start: Start (RETURN)
+  input_pad_r3: Quit to Title (EXIT)
+
+# Supernova Invaders  (Supernova Invaders.dsk)
+- id: supinv
+  sha1: 1bac874d4a1746d62118f641926e8592afcc5699
+  name: "Supernova Invaders"
+  conf: medium
+  profile: game
+  input_pad_up: UP
+  input_pad_down: DOWN
+  input_pad_left: LEFT
+  input_pad_right: RIGHT
+  input_pad_b: Fire (SPACE)
+  input_pad_x: Pause (CTRL)
+  input_pad_start: Start (RETURN)
+  input_pad_r3: Quit to Title (EXIT)
+
+# Terracom  (Terracom.dsk)
+- id: terracom
+  sha1: de812e96b2701477f42e25f96e160ccb89c0d825
+  name: "Terracom"
+  conf: low
+  profile: text
+  input_pad_up: UP
+  input_pad_down: DOWN
+  input_pad_left: LEFT
+  input_pad_right: RIGHT
+  input_pad_b: RETURN
+  input_pad_a: SPACE
+  input_pad_y: DEL
+  input_pad_start: Start (RETURN)
+  input_pad_r3: Quit to Title (EXIT)
+
+# Switchblade  (Switchblade-PCW.dsk)
+- id: switchbl
+  sha1: 902e664608c95753ea285a34a7a5bfadc4f6e9ea
+  name: "Switchblade"
+  conf: high
+  profile: game
+  input_pad_up: Move up (q)
+  input_pad_down: Move down (a)
+  input_pad_left: Move left (o)
+  input_pad_right: Move right (p)
+  input_pad_b: Attack (SPACE)
+  input_pad_start: Start (SPACE)
+
+# Target Renegade  (TARGET.DSK)
+- id: targetrn
+  sha1: 9214bab57f75f6d5c3654260eda76ba968d2f327
+  name: "Target Renegade"
+  conf: high
+  profile: game
+  input_pad_up: Move up (2)
+  input_pad_down: Crouch (3)
+  input_pad_left: Move left (5)
+  input_pad_right: Move right (4)
+  input_pad_b: Hit (1)
+  input_pad_x: Pause (h)
+  input_pad_start: One player (1)
+
+# The NewZealand Story  (tnzs.dsk)
+- id: tnzs
+  sha1: 1ac8bc794d6bc511ceaa72b2603ea90a31d551f2
+  name: "The NewZealand Story"
+  conf: high
+  profile: game
+  input_pad_up: Move up (q)
+  input_pad_down: Move down (a)
+  input_pad_left: Move left (o)
+  input_pad_right: Move right (p)
+  input_pad_b: Fire (SPACE)
+  input_pad_start: Start (SPACE)
+
+# Ummo  (Ummo.dsk)
+- id: ummo
+  sha1: bd96c70a501f4d37ce2a1bc4243186a0f02b7647
+  name: "Ummo"
+  conf: low
+  profile: text
+  input_pad_up: UP
+  input_pad_down: DOWN
+  input_pad_left: LEFT
+  input_pad_right: RIGHT
+  input_pad_b: RETURN
+  input_pad_a: SPACE
+  input_pad_y: DEL
+  input_pad_start: Start (RETURN)
+  input_pad_r3: Quit to Title (EXIT)
+
+# Xecutor  (Xecutor.DSK)
+- id: xecutor
+  sha1: acb63fc944246b9872a398d88c13d3294af0205d
+  name: "Xecutor"
+  conf: high
+  profile: game
+  input_pad_up: Move up (q)
+  input_pad_down: Move down (a)
+  input_pad_left: Move left (o)
+  input_pad_right: Move right (p)
+  input_pad_b: Fire (SPACE)
+  input_pad_x: Pause (h)
+  input_pad_start: One player (1)

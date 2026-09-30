@@ -196,6 +196,9 @@ their regeneration commands are documented under [`sources/`](sources/README.md)
 
 ## Content and discs
 
+See the [security policy](SECURITY.md) for input trust boundaries, private
+vulnerability reporting and precautions when sharing diagnostics or save states.
+
 Supply your own software images with the rights needed to use them. Commercial
 games, LocoScript and original CP/M system discs are not supplied by this
 project, and the project's licences do not grant rights to those programs.

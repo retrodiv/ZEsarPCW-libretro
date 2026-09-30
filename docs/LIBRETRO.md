@@ -13,14 +13,18 @@ The repository contains the C sources, embedded resources and build recipes.
 | Target | Build interface | Output consumed by the frontend or buildbot |
 |---|---|---|
 | Linux x86-64 | `make platform=unix` with native GCC | `zesarpcw_libretro.so` |
+| Linux x86 (32-bit) | `make platform=linux-x86 CC=i686-linux-gnu-gcc` | `zesarpcw_libretro.so` |
 | Linux AArch64 | `make platform=linux-aarch64 CC=aarch64-linux-gnu-gcc` | `zesarpcw_libretro.so` |
+| Linux ARMv7/armhf | `make platform=linux-armv7 CC=arm-linux-gnueabihf-gcc` | `zesarpcw_libretro.so` |
 | Windows x86-64 | `make platform=win64` with mingw-w64 or the buildbot's MXE compiler | `zesarpcw_libretro.dll` |
+| Windows x86 (32-bit) | `make platform=win32` with i686 mingw-w64 or the buildbot's MXE compiler | `zesarpcw_libretro.dll` |
 | macOS x86-64 | `make platform=osx-x86_64` with Apple Clang | `zesarpcw_libretro.dylib` |
 | macOS ARM64 | `make platform=osx-arm64` with Apple Clang | `zesarpcw_libretro.dylib` |
 | Android ARM64, API 21+ | `ndk-build -C jni APP_ABI=arm64-v8a` | `libs/arm64-v8a/libretro.so`; the buildbot renames it to `zesarpcw_libretro_android.so` |
+| Android ARMv7, API 21+ | `ndk-build -C jni APP_ABI=armeabi-v7a` | `libs/armeabi-v7a/libretro.so`; the buildbot renames it to `zesarpcw_libretro_android.so` |
 
 The [README](../README.md#build-and-check) documents toolchain selection and
-checks. [package.py](../PACKAGING.md) builds distribution ZIPs for these six
+checks. [package.py](../PACKAGING.md) builds distribution ZIPs for these ten
 targets; its Android Make recipe produces `zesarpcw_libretro.so`. These are
 different build interfaces for the same core and API. Android load segments
 are aligned to 16 KiB as described in the
@@ -30,15 +34,16 @@ A target recipe does not establish compatibility with every OS release or
 frontend. Linux's minimum glibc version depends on the selected build toolchain
 and sysroot; macOS's minimum version depends on its deployment target and SDK.
 Cross-compilation and export checks do not exercise the core on the target OS.
-There are no recipes here for 32-bit CPUs, static cores, iOS or consoles.
+The x86 packages require a 32-bit frontend. There are no recipes here for
+static cores, iOS or consoles.
 
 ## The libretro buildbot
 
 [.gitlab-ci.yml](../.gitlab-ci.yml) uses libretro's shared CI templates with
 `CORENAME=zesarpcw`, `MAKEFILE_PATH=.` and `JNI_PATH=.`. The configured jobs are
-Linux x86-64, Windows x86-64, both macOS architectures and Android ARM64.
-Linux AArch64 has a public build/package recipe and a GitHub Actions cross-build;
-it has no GitLab buildbot job configured here.
+Linux x86-64, Linux x86, Linux AArch64, Linux ARMv7/armhf, Windows x86-64,
+Windows x86, both macOS architectures, Android ARM64 and Android ARMv7.
+The GitHub workflow also builds packages for all ten targets.
 
 The template contracts were reviewed on 2026-09-09 at
 [ci-templates revision a3694df](https://git.libretro.com/libretro-infrastructure/ci-templates/-/tree/a3694dfdf409a890050a443b4dea64a33df63422).
@@ -50,6 +55,18 @@ The configuration follows the shared templates, as existing cores such as
 [Fuse](https://github.com/libretro/fuse-libretro/blob/master/.gitlab-ci.yml)
 do; template changes still need review and an actual pipeline run.
 
+The Linux AArch64, Linux i686 and Windows i686 templates were reviewed on
+2026-09-30 at
+[ci-templates revision 96f603e](https://git.libretro.com/libretro-infrastructure/ci-templates/-/tree/96f603ee450eff3e9ad2baeac75b300aa83c1c9e).
+AArch64 runs natively with `platform=unix CC=gcc`; Linux i686 supplies
+`platform=unix ARCH=x86 CC=gcc`; Windows i686 supplies `platform=win32` and
+`CC=i686-w64-mingw32.static-gcc`. The Makefile honours these compiler selections.
+The shared templates have no Linux armhf recipe, so that job installs the GNU
+ARM hard-float cross compiler in Debian Bookworm and builds `platform=linux-armv7`.
+Android ARMv7 uses `.libretro-android-jni-armeabi-v7a` from the same reviewed
+`android-jni.yml`. Linux armhf uses VFPv3-D16 without requiring NEON; Android
+ARMv7 uses the softfp ABI and the current NDK's NEON baseline.
+
 These includes resolve on **git.libretro.com**. Merely publishing this repository
 on GitHub does not register a project there or add it to RetroArch's downloads.
 The independent [GitHub workflow](../.github/workflows/build.yml) builds and
@@ -58,9 +75,10 @@ publish a release or register a core with libretro.
 
 ## Validate the revision to submit
 
-The first public release is **13.0.1**, with tag **v13.0.1** on the reviewed
-source commit. The API's `library_version`, the info file's `display_version`
-and the package identity must agree. The save-state format has its own version;
+The numeric core version comes from `src/pin.json` and its generated
+`PCW_CORE_VERSION` header; the API and package identity must agree with it.
+The info file's `display_version` is **Git**. Follow the commit version policy
+in [PACKAGING.md](../PACKAGING.md#release-identity). The save-state format has its own version;
 see [BOOTSTRAP.md](BOOTSTRAP.md#compatibility-boundary).
 
 Use a clean checkout with no sibling development repositories. On Linux x86-64:

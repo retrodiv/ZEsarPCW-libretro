@@ -29,7 +29,13 @@ third-party notices and data licences are preserved.
 
 ## Changes from ZEsarUX 13.0
 
-This catalogue describes the changes present in **ZEsarPCW 13.0.1** against
+2026-09-30: the public build, CI and packaging tools now support Linux AArch64,
+Linux x86, Linux ARMv7/armhf, Windows x86 and Android ARMv7 alongside the existing
+targets. Linux uses 64-bit file offsets, including on 32-bit builds. The core
+version is pinned separately from upstream, supplies the API through a generated
+header, and advances once per normal commit; the `.info` display label is `Git`.
+
+This catalogue describes the changes present in **ZEsarPCW** against
 the final ZEsarUX 13.0 release. It distinguishes corrections to inherited PCW
 behaviour, fixes in the libretro integration, and deliberate compatibility or
 presentation choices. A feature added for this port is not, by itself, evidence
@@ -97,7 +103,7 @@ ZEsarUX user interface was broken.
 | Helper disk confused with external paths | A substring match for `openpcw_os.dsk` could substitute the embedded helper for a user's file or directory of that name. An explicit internal call now selects the helper; external paths always read their named files. | [`dsk.c`](../src/dsk.c), `dskplusthree_enable`, `dskplusthree_enable_openpcw`; [`pcw.c`](../src/machines/pcw.c), `pcw_boot_cpm` |
 | Save-state model and memory stability | Loading a state from the other PCW model could change the session's RAM allocation and advertised state size. Such states are now rejected before mutation. To change models, select the model and reload content. | [`pcw_zsf.c`](../src/libretro/pcw_zsf.c), `pcw_zsf_load` |
 | Save-state bounds and validation | The serializer previously passed a format limit as if it were the frontend buffer's writable capacity. It now reserves the wrapper and disk space and passes the actual remaining capacity. Loading validates CRC, lengths, block vocabulary and field values before applying state, preventing partial restoration on malformed input. | [`libretro.c`](../src/libretro/libretro.c), [`pcw_zsf.c`](../src/libretro/pcw_zsf.c) |
-| Save-state completeness | CPU/RAM snapshots alone omitted in-flight FDC commands, pending bytes, clocks, interrupts, colour state and helper handoff. States now include those values, the mounted disk including guest writes, and native-bootstrap progress. Format v1 has an explicit version independent of core 13.0.1 and rejects development formats. | [Disk-state corrections](#disk-state-corrections-2026-09-08), [Native bootstrap](#native-bootstrap-2026-09-09) |
+| Save-state completeness | CPU/RAM snapshots alone omitted in-flight FDC commands, pending bytes, clocks, interrupts, colour state and helper handoff. States now include those values, the mounted disk including guest writes, and native-bootstrap progress. Format v1 has an explicit version independent of the core release and rejects development formats. | [Disk-state corrections](#disk-state-corrections-2026-09-08), [Native bootstrap](#native-bootstrap-2026-09-09) |
 | Keyboard ownership during save/load | Restoring the raw keyboard matrix could disagree with keys currently held by the frontend. Live user keys remain live; only saved autorun key presses and keyboard heartbeat are restored. Shared matrix-key ownership also prevents one input source from releasing another's held key. | [`pcw.c`](../src/machines/pcw.c), `pcw_machine_state`; [`pcw_keyboard.c`](../src/libretro/pcw_keyboard.c), `matrix_key` |
 | Rewind compression cost | Repeated snapshots allocated page scratch memory and recompressed unchanged RAM. The PCW state writer reuses scratch storage and caches unchanged pages while preserving the RAM RLE encoding. This is a performance adaptation. | [`pcw_zsf.c`](../src/libretro/pcw_zsf.c), [`pcw_state_rle.c`](../src/libretro/pcw_state_rle.c) |
 | Option parsing and menu construction | Substring matching could accept undeclared values, and bounded legacy menu strings could truncate descriptions or choices. Values now match declared identifiers exactly; unknown values preserve the current setting, and incomplete menus are not submitted. | [`libretro.c`](../src/libretro/libretro.c), [`pcw_keyboard.c`](../src/libretro/pcw_keyboard.c) |

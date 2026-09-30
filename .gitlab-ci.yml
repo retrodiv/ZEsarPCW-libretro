@@ -12,7 +12,13 @@ include:
   - project: 'libretro-infrastructure/ci-templates'
     file: '/linux-x64.yml'
   - project: 'libretro-infrastructure/ci-templates'
+    file: '/linux-i686.yml'
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/linux-aarch64.yml'
+  - project: 'libretro-infrastructure/ci-templates'
     file: '/windows-x64-mingw.yml'
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/windows-i686-mingw.yml'
   - project: 'libretro-infrastructure/ci-templates'
     file: '/osx-x64.yml'
   - project: 'libretro-infrastructure/ci-templates'
@@ -28,8 +34,38 @@ stages:
 libretro-build-linux-x64:
   extends: [.libretro-linux-x64-make-default, .core-defs]
 
+libretro-build-linux-i686:
+  extends: [.libretro-linux-i686-make-default, .core-defs]
+
+libretro-build-linux-aarch64:
+  extends: [.libretro-linux-aarch64-make-default, .core-defs]
+
+# The shared templates have no Linux armhf recipe. Build ARMv7 with a GNU
+# hard-float cross compiler and retain the usual buildbot artifact contract.
+libretro-build-linux-armhf:
+  extends: .core-defs
+  image: debian:bookworm-slim
+  stage: build-shared
+  variables:
+    platform: linux-armv7
+    CC: arm-linux-gnueabihf-gcc
+  before_script:
+    - apt-get update
+    - apt-get install -y --no-install-recommends make gcc-arm-linux-gnueabihf binutils-arm-linux-gnueabihf
+  script:
+    - make -C ${MAKEFILE_PATH} -j$(nproc)
+    - arm-linux-gnueabihf-strip --strip-unneeded ${CORENAME}_libretro.so
+  artifacts:
+    paths:
+      - ${CORENAME}_libretro.so
+    expire_in: 10 min
+  dependencies: []
+
 libretro-build-windows-x64:
   extends: [.libretro-windows-x64-mingw-make-default, .core-defs]
+
+libretro-build-windows-i686:
+  extends: [.libretro-windows-i686-mingw-make-default, .core-defs]
 
 libretro-build-osx-x64:
   extends: [.libretro-osx-x64-make-default, .core-defs]
@@ -39,3 +75,6 @@ libretro-build-osx-arm64:
 
 libretro-build-android-arm64:
   extends: [.libretro-android-jni-arm64-v8a, .core-defs]
+
+libretro-build-android-armv7:
+  extends: [.libretro-android-jni-armeabi-v7a, .core-defs]

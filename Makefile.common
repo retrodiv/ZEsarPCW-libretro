@@ -37,5 +37,10 @@ INCFLAGS := \
 
 # Required by both the standalone Makefile and Android's ndk-build recipe.
 CORE_DEFINES := -DCOMPILE_LIBRETRO -D_LARGEFILE64_SOURCE=1
+# Use large-file stat/off_t on 32-bit Linux too: modern filesystems can have
+# inode numbers which overflow the legacy stat ABI even for a small disk image.
+ifeq (,$(findstring android,$(platform))$(TARGET_ARCH_ABI))
+  CORE_DEFINES += -D_FILE_OFFSET_BITS=64
+endif
 CORE_COMMON_CFLAGS := -fsigned-char -fno-strict-aliasing -fno-common -Wno-unused-result \
                       -fvisibility=hidden -ffunction-sections -fdata-sections -Werror

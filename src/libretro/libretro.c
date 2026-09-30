@@ -18,6 +18,7 @@
 #include <inttypes.h>
 
 #include "libretro.h"
+#include "pcw_version.h"
 
 /* ZEsarUX core headers (the Makefile adds -I. -Ivideo -Iaudio -Imachines ...). */
 #include "pcw_engine.h"
@@ -249,7 +250,7 @@ RETRO_API void retro_get_system_info(struct retro_system_info *info)
     info->library_name     = "ZEsarPCW";
     /* MAJOR.MINOR tracks the upstream ZEsarUX release this core derives from;
        the last digit is the port's own release on top of it. */
-    info->library_version  = "13.0.1";
+    info->library_version  = PCW_CORE_VERSION;
     info->valid_extensions = "dsk|m3u";   /* .m3u is parsed by the core (pcw_disk.c) */
     info->need_fullpath    = true;   /* we mount the .dsk by path */
     /* Let the frontend transparently handle archives (.zip): it opens the archive,

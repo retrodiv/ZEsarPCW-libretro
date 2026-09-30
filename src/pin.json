@@ -1,0 +1,8 @@
+{
+  "version": "13.0.2",
+  "upstream": {
+    "version": "13.0",
+    "url": "https://github.com/chernandezba/zesarux/archive/refs/tags/ZEsarUX-13.0.tar.gz",
+    "sha256": "ca738a776a8fc6a336cffb2ceb9c0778ad58b900ec9a68d60ba6a38ee06c77b5"
+  }
+}

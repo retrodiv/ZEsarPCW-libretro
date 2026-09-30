@@ -3,8 +3,8 @@
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
-ifneq ($(TARGET_ARCH_ABI),arm64-v8a)
-  $(error ZEsarPCW ndk-build supports arm64-v8a)
+ifeq (,$(filter $(TARGET_ARCH_ABI),arm64-v8a armeabi-v7a))
+  $(error ZEsarPCW ndk-build supports arm64-v8a and armeabi-v7a)
 endif
 
 CORE_DIR := $(LOCAL_PATH)/../src
@@ -13,6 +13,9 @@ include $(LOCAL_PATH)/../Makefile.common
 
 # The libretro buildbot expects libs/<abi>/libretro.so.
 LOCAL_MODULE := retro
+ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
+  LOCAL_ARM_NEON := true
+endif
 LOCAL_SRC_FILES := $(patsubst $(LOCAL_PATH)/%,%,$(SOURCES_C))
 LOCAL_C_INCLUDES := $(patsubst -I%,%,$(INCFLAGS))
 LOCAL_CFLAGS := $(CORE_DEFINES) $(CORE_COMMON_CFLAGS)

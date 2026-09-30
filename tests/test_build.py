@@ -75,14 +75,15 @@ class MakeContracts(unittest.TestCase):
 
     def test_defaults_including_no_builtin_variables(self):
         for platform, compiler in (("unix", "gcc"), ("win", "x86_64-w64-mingw32-gcc"),
-                                   ("win64", "x86_64-w64-mingw32-gcc"), ("osx", "clang")):
+                                   ("win64", "x86_64-w64-mingw32-gcc"),
+                                   ("win32", "i686-w64-mingw32-gcc"), ("osx", "clang")):
             for args in ((), ("-rR",)):
                 with self.subTest(platform=platform, args=args):
                     for cmd in self.commands(platform, args):
                         self.assertEqual(cmd[0], compiler)
 
     def test_environment_and_command_line_compilers(self):
-        for platform in ("unix", "win", "win64", "osx-arm64", "android"):
+        for platform in ("unix", "linux-x86", "linux-aarch64", "linux-armv7", "win", "win64", "win32", "osx-arm64", "android"):
             env = {"CC": "x86_64-w64-mingw32.static-gcc"}
             with self.subTest(platform=platform):
                 for cmd in self.commands(platform, environment=env):
@@ -106,6 +107,22 @@ class MakeContracts(unittest.TestCase):
                 self.assertIn("-Wl,-user-link", cmd)
                 self.assertIn("-luser", cmd)
 
+    def test_linux_x86_flag_reaches_compile_and_link(self):
+        for platform, args in (("linux-x86", ()), ("linux-i686", ()),
+                               ("unix", ("ARCH=x86",))):
+            with self.subTest(platform=platform):
+                for cmd in self.commands(platform, args):
+                    self.assertIn("-m32", cmd)
+        for cmd in self.commands("linux-aarch64", ("CC=aarch64-linux-gnu-gcc",)):
+            self.assertNotIn("-m32", cmd)
+
+    def test_armv7_uses_hard_float_without_requiring_neon(self):
+        for platform in ("linux-armv7", "linux-armhf"):
+            for cmd in self.commands(platform, ("CC=arm-linux-gnueabihf-gcc",)):
+                self.assertIn("-march=armv7-a", cmd)
+                self.assertIn("-mfpu=vfpv3-d16", cmd)
+                self.assertIn("-mfloat-abi=hard", cmd)
+
     def test_incomplete_apple_cross_configuration_fails(self):
         self.assertIn("requires LIBRETRO_APPLE_PLATFORM", self.commands(
             "osx", environment={"CROSS_COMPILE": "1"}, success=False))
@@ -118,11 +135,17 @@ class MakeContracts(unittest.TestCase):
                 self.assertEqual(cmd[cmd.index("-arch")+1], arch)
 
     def test_android_uses_elf_export_policy(self):
-        commands = self.commands("android", ("CC=ndk-clang",))
-        link = next(c for c in commands if "-shared" in c)
-        self.assertTrue(any("--version-script=src/libretro/libretro.exports" in flag for flag in link))
-        self.assertTrue(any("max-page-size=16384" in flag for flag in link))
-        self.assertTrue(any("common-page-size=16384" in flag for flag in link))
+        for platform in ("android", "android-armv7"):
+            commands = self.commands(platform, ("CC=ndk-clang",))
+            link = next(c for c in commands if "-shared" in c)
+            self.assertTrue(any("--version-script=src/libretro/libretro.exports" in flag for flag in link))
+            self.assertTrue(any("max-page-size=16384" in flag for flag in link))
+            self.assertTrue(any("common-page-size=16384" in flag for flag in link))
+            if platform == "android-armv7":
+                for cmd in commands:
+                    self.assertIn("-march=armv7-a", cmd)
+                    self.assertIn("-mfpu=neon", cmd)
+                    self.assertIn("-mfloat-abi=softfp", cmd)
 
 
 class CheckerContracts(unittest.TestCase):
@@ -133,6 +156,11 @@ class CheckerContracts(unittest.TestCase):
         metadata += '\ndatabase = "Amstrad - PCW"\n'
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
+            for name in ("tools/version.py", "src/pin.json", "src/libretro/pcw_version.h",
+                         "src/libretro/libretro.c"):
+                target = root / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes((ROOT / name).read_bytes())
             info = root / "zesarpcw_libretro.info"
             info.write_text(metadata)
             with patch.object(CHECK, "ROOT", root):
@@ -168,6 +196,25 @@ class CheckerContracts(unittest.TestCase):
                 with self.subTest(data=data[:64]), self.assertRaises(SystemExit):
                     CHECK.check_android_target(core)
 
+    def test_android_armv7_architecture_and_load_alignment(self):
+        def elf(align=16384, machine=40):
+            ident = b"\x7fELF\x01\x01\x01" + b"\0" * 9
+            header = ident + struct.pack("<HHIIIIIHHHHHH", 3, machine,
+                1, 0, 52, 0, 0x05000200, 52, 32, 1, 0, 0, 0)
+            return header + struct.pack("<8I", 1, 0, 0, 0, 84, 84, 5, align)
+
+        with tempfile.TemporaryDirectory() as td:
+            core = Path(td) / "probe.so"
+            core.write_bytes(elf())
+            with contextlib.redirect_stdout(io.StringIO()):
+                CHECK.check_android_target(core, "android-armv7")
+            with self.assertRaises(SystemExit):
+                CHECK.check_android_target(core, "android-arm64")
+            for data in (elf(align=4096), elf(machine=183), elf()[:60]):
+                core.write_bytes(data)
+                with self.assertRaises(SystemExit):
+                    CHECK.check_android_target(core, "android-armv7")
+
     def test_runtime_runs_only_for_a_matching_host(self):
         cases = (("darwin", "arm64", "osx-arm64", True),
                  ("darwin", "arm64", "osx-x86_64", False),
@@ -175,6 +222,10 @@ class CheckerContracts(unittest.TestCase):
                  ("linux", "x86_64", "osx-x86_64", False),
                  ("linux", "aarch64", "linux-aarch64", True),
                  ("linux", "x86_64", "linux-aarch64", False),
+                 ("linux", "x86_64", "linux-x86", False),
+                 ("linux", "aarch64", "linux-x86", False),
+                 ("linux", "x86_64", "linux-armv7", False),
+                 ("linux", "aarch64", "linux-armv7", False),
                  ("linux", "x86_64", "unix", True),
                  ("linux", "x86_64", "win64", False),
                  ("linux", "aarch64", "android-arm64", False))
@@ -183,6 +234,55 @@ class CheckerContracts(unittest.TestCase):
                     patch.object(CHECK.host_platform, "machine", return_value=cpu), patch.dict(os.environ, {}, clear=True):
                 self.assertEqual(CHECK.native_runtime(target), want)
                 self.assertEqual(CHECK.dead_strip_flag(), "-Wl,-dead_strip" if host == "darwin" else "-Wl,--gc-sections")
+
+    def test_linux_checker_rejects_a_mislabeled_architecture(self):
+        targets = (("linux-x86", 1, 3), ("linux-x86_64", 2, 62),
+                   ("linux-aarch64", 2, 183), ("linux-armv7", 1, 40))
+        with tempfile.TemporaryDirectory() as td:
+            core = Path(td) / "probe.so"
+            for target, elf_class, machine in targets:
+                data = bytearray(64)
+                data[:7] = b"\x7fELF" + bytes((elf_class, 1, 1))
+                struct.pack_into("<HH", data, 16, 3, machine)
+                if machine == 40:
+                    struct.pack_into("<I", data, 36, 0x05000400)
+                core.write_bytes(data)
+                CHECK.check_linux_target(core, target)
+                for other, _, _ in targets:
+                    if other != target:
+                        with self.subTest(target=target, other=other), self.assertRaises(SystemExit):
+                            CHECK.check_linux_target(core, other)
+
+    def test_armhf_checker_rejects_soft_float(self):
+        with tempfile.TemporaryDirectory() as td:
+            core = Path(td) / "probe.so"
+            data = bytearray(52)
+            data[:7] = b"\x7fELF\x01\x01\x01"
+            struct.pack_into("<HH", data, 16, 3, 40)
+            for flags in (0x05000000, 0x05000200, 0x05000600, 0x04000400):
+                struct.pack_into("<I", data, 36, flags)
+                core.write_bytes(data)
+                with self.assertRaises(SystemExit):
+                    CHECK.check_linux_target(core, "linux-armv7")
+
+    def test_pe_checker_rejects_a_mislabeled_architecture(self):
+        with tempfile.TemporaryDirectory() as td:
+            core = Path(td) / "probe.dll"
+            for target, machine, magic in (("win32", 0x14c, 0x10b),
+                                           ("win64", 0x8664, 0x20b)):
+                data = bytearray(90)
+                data[:2] = b"MZ"
+                struct.pack_into("<I", data, 60, 64)
+                data[64:68] = b"PE\0\0"
+                struct.pack_into("<H", data, 68, machine)
+                struct.pack_into("<HH", data, 86, 0x2000, magic)
+                core.write_bytes(data)
+                CHECK.check_pe_target(core, target)
+                with self.assertRaises(SystemExit):
+                    CHECK.check_pe_target(core, "win64" if target == "win32" else "win32")
+                core.write_bytes(data[:70])
+                with self.assertRaises(SystemExit):
+                    CHECK.check_pe_target(core, target)
 
     def test_macho_architecture_and_deployment_target(self):
         with tempfile.TemporaryDirectory() as td:
@@ -207,10 +307,12 @@ class CheckerContracts(unittest.TestCase):
                 f"[ {i}] " + (f"+base[ {i+1}]  {i:04x} " if hints else "") + name
                 for i, name in enumerate(sorted(CHECK.EXPECTED_EXPORTS))) + "\n\n"
             with patch.object(CHECK.shutil, "which", return_value="objdump"), \
+                    patch.object(CHECK, "check_pe_target"), \
                     patch.object(CHECK, "run", return_value=subprocess.CompletedProcess([], 0, table, "")):
                 CHECK.check_exports(Path("probe.dll"), "win64")
             bad = table.rstrip() + "\n[ 25] accidental_helper\n\n"
             with patch.object(CHECK.shutil, "which", return_value="objdump"), \
+                    patch.object(CHECK, "check_pe_target"), \
                     patch.object(CHECK, "run", return_value=subprocess.CompletedProcess([], 0, bad, "")), \
                     self.assertRaises(SystemExit):
                 CHECK.check_exports(Path("probe.dll"), "win64")

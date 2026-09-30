@@ -66,42 +66,67 @@ jobs:
         run: setarch "$(uname -m)" -R python3 check.py --core ./zesarpcw_libretro.so --platform unix --tsan --reloads 50
 
   windows-cross:
+    strategy:
+      matrix:
+        include:
+          - platform: windows-x86_64
+            compiler_package: gcc-mingw-w64-x86-64
+          - platform: windows-x86
+            compiler_package: gcc-mingw-w64-i686
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Install mingw-w64
-        run: sudo apt-get update && sudo apt-get install -y gcc-mingw-w64-x86-64
+        run: sudo apt-get update && sudo apt-get install -y ${{ matrix.compiler_package }}
       - name: Build, check and package Windows with corresponding source
-        run: python3 package.py --platform windows-x86_64 --jobs "$(nproc)"
+        run: python3 package.py --platform ${{ matrix.platform }} --jobs "$(nproc)"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: zesarpcw_libretro-windows-x86_64-${{ github.sha }}
+          name: zesarpcw_libretro-${{ matrix.platform }}-${{ github.sha }}
           path: dist/*.zip
           if-no-files-found: error
           retention-days: 30
           compression-level: 0 # The distribution ZIP is already compressed.
 
-  linux-aarch64-cross:
+  linux-cross:
+    strategy:
+      matrix:
+        include:
+          - platform: linux-aarch64
+            compiler_package: gcc-aarch64-linux-gnu
+          - platform: linux-x86
+            compiler_package: gcc-i686-linux-gnu
+          - platform: linux-armv7
+            compiler_package: gcc-arm-linux-gnueabihf
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Install AArch64 compiler
-        run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
-      - name: Build, check and package AArch64 with corresponding source
-        run: python3 package.py --platform linux-aarch64 --jobs "$(nproc)"
+      - name: Install Linux cross compiler
+        run: sudo apt-get update && sudo apt-get install -y ${{ matrix.compiler_package }}
+      - name: Build, check and package Linux with corresponding source
+        run: python3 package.py --platform ${{ matrix.platform }} --jobs "$(nproc)"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: zesarpcw_libretro-linux-aarch64-${{ github.sha }}
+          name: zesarpcw_libretro-${{ matrix.platform }}-${{ github.sha }}
           path: dist/*.zip
           if-no-files-found: error
           retention-days: 30
           compression-level: 0 # The distribution ZIP is already compressed.
 
   android-arm64-cross:
+    strategy:
+      matrix:
+        include:
+          - platform: android-arm64
+            abi: arm64-v8a
+            target: aarch64-linux-android
+          - platform: android-armv7
+            abi: armeabi-v7a
+            target: armv7a-linux-androideabi
     runs-on: ubuntu-24.04
     env:
       NDK_VERSION: 26.3.11579264
@@ -115,16 +140,16 @@ jobs:
       - name: Build, check and package Android with corresponding source
         run: |
           NDK="$ANDROID_HOME/ndk/$NDK_VERSION"
-          CC="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang"
+          CC="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/${{ matrix.target }}21-clang"
           STRIP="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip"
-          python3 package.py --platform android-arm64 --cc "$CC" --strip "$STRIP" --jobs "$(nproc)"
+          python3 package.py --platform ${{ matrix.platform }} --cc "$CC" --strip "$STRIP" --jobs "$(nproc)"
       - name: Check the Android buildbot recipe and 16 KiB ELF alignment
         run: |
-          "$ANDROID_HOME/ndk/$NDK_VERSION/ndk-build" -C jni APP_ABI=arm64-v8a -j"$(nproc)"
-          python3 check.py --core ./libs/arm64-v8a/libretro.so --platform android-arm64
+          "$ANDROID_HOME/ndk/$NDK_VERSION/ndk-build" -C jni APP_ABI=${{ matrix.abi }} -j"$(nproc)"
+          python3 check.py --core ./libs/${{ matrix.abi }}/libretro.so --platform ${{ matrix.platform }}
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: zesarpcw_libretro-android-arm64-${{ github.sha }}
+          name: zesarpcw_libretro-${{ matrix.platform }}-${{ github.sha }}
           path: dist/*.zip
           if-no-files-found: error
           retention-days: 30

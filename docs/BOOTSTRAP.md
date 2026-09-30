@@ -45,7 +45,7 @@ bootstrap is rearmed only by a reset or the PCW soft-boot command.
 Bootstrap progress is a required, validated part of the runtime state block.
 The save-state format starts at v1 for the first published core. Its explicit
 `ZPCW_STATE_VERSION` in `src/libretro/libretro.c` is independent of the core's
-13.0.1 release number and must increase when the saved layout or semantics
+core release number and must increase when the saved layout or semantics
 become incompatible. The first four bytes are `57 43 50 01` (WCP followed by a
 numeric version byte); development formats used an ASCII digit instead.
 Earlier development states, unknown format versions and states missing the

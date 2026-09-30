@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # Copyright (c) 2026 retrodiv <retrodiv@proton.me>
 # ZEsarPCW -- Amstrad PCW libretro core (derived from ZEsarUX 13.0, GPLv3).
-# Standard libretro build: make platform=<unix|osx|win|android>.
+# Standard libretro build: make platform=<unix|linux-*|osx|win32|win64|android[-armv7]>.
 
 TARGET_NAME := zesarpcw_libretro
 CORE_DIR    := src
@@ -53,6 +53,9 @@ else ifneq (,$(findstring osx,$(platform)))
   endif
 else ifneq (,$(findstring win,$(platform)))
   DEFAULT_CC := x86_64-w64-mingw32-gcc
+  ifneq (,$(filter win32 windows-x86 win-i686,$(platform)))
+    DEFAULT_CC := i686-w64-mingw32-gcc
+  endif
   TARGET := $(TARGET_NAME).dll
   SHARED := -shared -static-libgcc -Wl,-Bsymbolic,--gc-sections,--no-undefined,--no-insert-timestamp,--exclude-all-symbols
   EXTRA_CFLAGS := -DMINGW -include $(CORE_DIR)/libretro/win_compat.h
@@ -63,9 +66,23 @@ else ifneq (,$(findstring android,$(platform)))
   SHARED := -shared -Wl,-Bsymbolic,--gc-sections,--no-undefined,-z,relro,-z,now,--version-script=src/libretro/libretro.exports -Wl,-z,max-page-size=16384,-z,common-page-size=16384
   LIBS   := -lm
   PLATFORM_SRC :=
+  ifeq ($(platform),android-armv7)
+    CORE_PLATFORM_FLAGS := -march=armv7-a -mfpu=neon -mfloat-abi=softfp
+  endif
 else
   TARGET := $(TARGET_NAME).so
   SHARED := -shared -Wl,-Bsymbolic,--gc-sections,--no-undefined
+endif
+
+# The i686 buildbot sets ARCH=x86 with platform=unix. Explicit platform names
+# also select 32-bit code for contributor builds on an x86-64 Linux host.
+ifneq (,$(findstring unix,$(platform))$(findstring linux,$(platform)))
+  ifneq (,$(filter linux-x86 linux-i686 unix-x86,$(platform))$(filter x86,$(ARCH)))
+    CORE_PLATFORM_FLAGS += -m32
+  endif
+  ifneq (,$(filter linux-armv7 linux-armhf,$(platform)))
+    CORE_PLATFORM_FLAGS += -march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard
+  endif
 endif
 
 ifneq (,$(filter default undefined,$(origin CC)))

@@ -1,0 +1,5 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 retrodiv <retrodiv@proton.me>. GPLv3; see LICENSE.
+set -eu
+exec python3 tools/version.py pre-commit

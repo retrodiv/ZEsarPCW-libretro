@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import platform as host_platform
 import re
@@ -58,6 +59,7 @@ def check_metadata() -> None:
             key, value = raw.split("=", 1)
             values[key.strip()] = value.strip().strip('"')
     expected = {
+        "display_version": "Git",
         "supported_extensions": "dsk|m3u", "needs_fullpath": "true",
         "supports_no_game": "false", "disk_control": "true",
         "savestate_features": "serialized", "cheats": "true",
@@ -69,6 +71,7 @@ def check_metadata() -> None:
             fail(f"metadata {key!r}: got {values.get(key)!r}, expected {want!r}")
     if "need_fullpath" in values:
         fail("metadata uses need_fullpath instead of needs_fullpath")
+    run([sys.executable, str(ROOT / "tools/version.py"), "check"])
 
 
 def check_export_policy() -> None:
@@ -90,9 +93,11 @@ def check_export_policy() -> None:
 
 def check_exports(core: Path, platform: str) -> None:
     if "android" in platform:
-        check_android_target(core)
+        check_android_target(core, platform)
     if "win" in platform:
-        objdump = shutil.which("x86_64-w64-mingw32-objdump") or shutil.which("objdump")
+        check_pe_target(core, platform)
+        prefix = "i686" if platform in ("win32", "windows-x86", "win-i686") else "x86_64"
+        objdump = shutil.which(prefix + "-w64-mingw32-objdump") or shutil.which("objdump")
         if not objdump:
             fail("objdump is required to validate Windows exports")
         cp = run([objdump, "-p", str(core)], capture_output=True)
@@ -125,6 +130,8 @@ def check_exports(core: Path, platform: str) -> None:
             fail(f"Mach-O exports differ: extra={sorted(exports-EXPECTED_EXPORTS)}, "
                  f"missing={sorted(EXPECTED_EXPORTS-exports)}")
         return
+    if platform.startswith("linux-"):
+        check_linux_target(core, platform)
     cp = run(["nm", "-D", "--defined-only", str(core)], capture_output=True)
     exports = {line.split()[-1] for line in cp.stdout.splitlines() if line.split()}
     if exports != EXPECTED_EXPORTS:
@@ -132,22 +139,65 @@ def check_exports(core: Path, platform: str) -> None:
              f"missing={sorted(EXPECTED_EXPORTS-exports)}")
 
 
-def check_android_target(core: Path) -> None:
-    """ARM64 Android libraries must also load on devices with 16 KiB pages."""
+def check_linux_target(core: Path, platform: str) -> None:
+    expected = {"linux-x86": (1, 3), "linux-i686": (1, 3),
+                "linux-x86_64": (2, 62), "linux-aarch64": (2, 183),
+                "linux-armv7": (1, 40), "linux-armhf": (1, 40)}.get(platform)
+    if expected is None:
+        return
     data = core.read_bytes()
-    if len(data) < 64 or data[:7] != b"\x7fELF\x02\x01\x01":
-        fail("expected a 64-bit little-endian Android ELF library")
+    elf_class, machine = expected
+    header_size = 52 if elf_class == 1 else 64
+    if (len(data) < header_size or data[:4] != b"\x7fELF"
+            or data[4:7] != bytes((elf_class, 1, 1))
+            or struct.unpack_from("<HH", data, 16) != (3, machine)):
+        fail(f"expected a {platform} ELF shared library")
+    if machine == 40:
+        flags = struct.unpack_from("<I", data, 36)[0]
+        if flags & 0xff000000 != 0x05000000 or flags & 0x600 != 0x400:
+            fail("expected ARM EABI5 with the hard-float ABI (armhf)")
+
+
+def check_pe_target(core: Path, platform: str) -> None:
+    expected = {"win32": (0x14c, 0x10b), "windows-x86": (0x14c, 0x10b),
+                "win-i686": (0x14c, 0x10b), "win64": (0x8664, 0x20b),
+                "windows-x86_64": (0x8664, 0x20b)}.get(platform)
+    if expected is None:
+        return
+    data = core.read_bytes()
+    if len(data) < 64 or data[:2] != b"MZ":
+        fail("expected a Windows PE library")
+    offset = struct.unpack_from("<I", data, 60)[0]
+    if offset < 64 or offset + 26 > len(data) or data[offset:offset+4] != b"PE\0\0":
+        fail("invalid Windows PE header")
+    machine = struct.unpack_from("<H", data, offset + 4)[0]
+    flags, magic = struct.unpack_from("<HH", data, offset + 22)
+    if (machine, magic) != expected or not flags & 0x2000:
+        fail(f"expected a {platform} PE DLL")
+
+
+def check_android_target(core: Path, platform: str = "android-arm64") -> None:
+    """Check the requested Android ARM architecture and 16 KiB load alignment."""
+    data = core.read_bytes()
+    armv7 = platform == "android-armv7"
+    elf_class, machine, header_size = (1, 40, 52) if armv7 else (2, 183, 64)
+    if len(data) < header_size or data[:7] != b"\x7fELF" + bytes((elf_class, 1, 1)):
+        fail(f"expected an {platform} little-endian ELF library")
     kind, machine = struct.unpack_from("<HH", data, 16)
-    if kind != 3 or machine != 183:  # ET_DYN, EM_AARCH64
-        fail("expected an ARM64 Android shared library")
-    offset = struct.unpack_from("<Q", data, 32)[0]
-    size, count = struct.unpack_from("<HH", data, 54)
-    if size != 56 or not count or offset < 64 or offset + count * size > len(data):
+    if kind != 3 or machine != (40 if armv7 else 183):
+        fail(f"expected an {platform} shared library")
+    offset = struct.unpack_from("<I" if armv7 else "<Q", data, 28 if armv7 else 32)[0]
+    size, count = struct.unpack_from("<HH", data, 42 if armv7 else 54)
+    if size != (32 if armv7 else 56) or not count or offset < header_size or offset + count * size > len(data):
         fail("invalid Android ELF program headers")
     loads = 0
     for index in range(count):
-        kind, _, file_offset, address, _, file_size, memory_size, alignment = struct.unpack_from(
-            "<II6Q", data, offset + index * size)
+        if armv7:
+            kind, file_offset, address, _, file_size, memory_size, _, alignment = struct.unpack_from(
+                "<8I", data, offset + index * size)
+        else:
+            kind, _, file_offset, address, _, file_size, memory_size, alignment = struct.unpack_from(
+                "<II6Q", data, offset + index * size)
         if kind != 1:  # PT_LOAD
             continue
         loads += 1
@@ -158,7 +208,7 @@ def check_android_target(core: Path) -> None:
             fail("Android ELF load segments require 16 KiB page alignment")
     if not loads:
         fail("Android ELF has no load segments")
-    print("PASS: Android ARM64 ELF, load segments aligned for 16 KiB pages")
+    print(f"PASS: {platform} ELF, load segments aligned for 16 KiB pages")
 
 
 def macho_target(core: Path) -> tuple[str, tuple[int, int, int]]:
@@ -227,6 +277,11 @@ def native_runtime(platform: str) -> bool:
         return expected == "osx" or expected == machine
     if "aarch64" in platform or "arm64" in platform:
         return sys.platform.startswith("linux") and machine == "arm64"
+    if platform in ("linux-armv7", "linux-armhf"):
+        return sys.platform.startswith("linux") and machine.startswith("armv7") and struct.calcsize("P") == 4
+    if platform in ("linux-x86", "linux-i686", "unix-x86"):
+        return (sys.platform.startswith("linux") and struct.calcsize("P") == 4
+                and machine in ("i386", "i486", "i586", "i686", "x86", "x86_64"))
     return sys.platform.startswith("linux") and ("x86_64" not in platform or machine == "x86_64")
 
 
@@ -417,6 +472,10 @@ def check_runtime(core: Path, cc: str, temp: Path, sanitizer: str, reloads: int)
     cp = run([str(host), str(core.resolve()), str(disk), str(ROOT / "src"), "20"],
              env=env, capture_output=True)
     output = cp.stdout + cp.stderr
+    core_version = json.loads((ROOT / "src/pin.json").read_text())["version"]
+    if not re.search(rf'^\[host\] core: .* {re.escape(core_version)}  ext=', output, re.M):
+        print(output, file=sys.stderr)
+        fail(f"loaded core does not report the pinned version {core_version}")
     required = (
         "retro_load_game -> 1", "option registration: v2=1 legacy=0",
         "physical keyboard options: toggle=1 rows=82 bad=0 hidden=82 shown=82",

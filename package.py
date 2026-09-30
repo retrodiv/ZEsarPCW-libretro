@@ -28,10 +28,14 @@ MANIFEST = "SOURCE_MANIFEST.sha256"
 NAME = "zesarpcw_libretro"
 # make platform, checker platform, compiler, strip, extension
 TARGETS = {
-    "linux-x86_64": ("unix", "unix", "gcc", "strip", ".so"),
+    "linux-x86_64": ("unix", "linux-x86_64", "gcc", "strip", ".so"),
+    "linux-x86": ("linux-x86", "linux-x86", "i686-linux-gnu-gcc", "i686-linux-gnu-strip", ".so"),
     "linux-aarch64": ("linux-aarch64", "linux-aarch64", "aarch64-linux-gnu-gcc", "aarch64-linux-gnu-strip", ".so"),
-    "windows-x86_64": ("win", "win", "x86_64-w64-mingw32-gcc", "x86_64-w64-mingw32-strip", ".dll"),
+    "linux-armv7": ("linux-armv7", "linux-armv7", "arm-linux-gnueabihf-gcc", "arm-linux-gnueabihf-strip", ".so"),
+    "windows-x86_64": ("win", "win64", "x86_64-w64-mingw32-gcc", "x86_64-w64-mingw32-strip", ".dll"),
+    "windows-x86": ("win32", "win32", "i686-w64-mingw32-gcc", "i686-w64-mingw32-strip", ".dll"),
     "android-arm64": ("android", "android-arm64", None, None, ".so"),
+    "android-armv7": ("android-armv7", "android-armv7", None, None, ".so"),
     "macos-x86_64": ("osx-x86_64", "osx-x86_64", "clang", "strip", ".dylib"),
     "macos-arm64": ("osx-arm64", "osx-arm64", "clang", "strip", ".dylib"),
 }
@@ -126,11 +130,11 @@ def write_zip(path: Path, files: dict[str, bytes]) -> None:
 
 
 def version(files: dict[str, bytes]) -> str:
-    info = re.search(rb'^display_version\s*=\s*"([A-Za-z0-9.+-]+)"', files[NAME + ".info"], re.M)
-    api = re.search(rb'library_version\s*=\s*"([A-Za-z0-9.+-]+)"', files["src/libretro/libretro.c"])
-    if not info or not api or info[1] != api[1]:
-        raise ValueError("core API and .info versions must agree")
-    return info[1].decode()
+    # Load policy from the captured source, rather than the live working tree.
+    namespace = {"__file__": str(ROOT / "tools/version.py"), "__name__": "version_policy"}
+    exec(compile(files["tools/version.py"], "tools/version.py", "exec"),
+         namespace)
+    return namespace["check_records"](files)
 
 
 def notice_files(files: dict[str, bytes]) -> dict[str, bytes]:
@@ -198,9 +202,14 @@ def build_package(args) -> Path:
         # cannot execute the target library.
         machine = subprocess.check_output([cc, "-dumpmachine"], env=env, text=True).strip()
         arch = "aarch64|arm64" if args.platform.endswith(("aarch64", "arm64")) else "x86_64|amd64"
+        if args.platform.endswith("-x86"):
+            arch = "i[3-6]86|x86"
+        elif args.platform.endswith("-armv7"):
+            arch = "arm|armv7[a-z]*"
         os_pattern = {"linux": "linux", "windows": "mingw|windows", "android": "android", "macos": "darwin|apple"}[args.platform.split("-")[0]]
         if (not re.match(f"^(?:{arch})-", machine) or not re.search(os_pattern, machine)
-                or (args.platform.startswith("linux-") and "android" in machine)):
+                or (args.platform.startswith("linux-") and "android" in machine)
+                or (args.platform == "linux-armv7" and "gnueabihf" not in machine)):
             raise ValueError(f"compiler target {machine} does not match {args.platform}")
         compiler = subprocess.check_output([cc, "--version"], env=env, text=True).splitlines()[0]
         subprocess.run(make, cwd=build, env=env, check=True)

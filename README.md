@@ -116,8 +116,12 @@ archive. See the [asset instructions](sources/README.md).
 
 ```sh
 make platform=unix -j4       # zesarpcw_libretro.so
+make platform=linux-aarch64 CC=aarch64-linux-gnu-gcc -j4 # Linux AArch64
+make platform=linux-x86 CC=i686-linux-gnu-gcc -j4       # Linux x86 (32-bit)
+make platform=linux-armv7 CC=arm-linux-gnueabihf-gcc -j4 # Linux ARMv7/armhf
 make platform=osx -j4        # zesarpcw_libretro.dylib
 make platform=win -j4        # zesarpcw_libretro.dll (mingw-w64)
+make platform=win32 -j4      # Windows x86 (i686-w64-mingw32-gcc)
 make platform=unix check -j4 # build + libretro API/unit/runtime checks
 ```
 
@@ -126,9 +130,19 @@ Make copies the selected library to the repository root, including when switchin
 back to a previously built platform. Run `make clean` before changing the compiler, SDK
 or flags for the same platform. `CC` from the environment or command line is
 respected, including MXE's `x86_64-w64-mingw32.static-gcc` with `platform=win64`.
-Without a caller-selected `CC`, Windows uses `x86_64-w64-mingw32-gcc`, macOS uses
+Without a caller-selected `CC`, Windows x86-64 uses `x86_64-w64-mingw32-gcc`,
+`win32` uses `i686-w64-mingw32-gcc`, macOS uses
 `clang` and other platforms use `gcc`. Android needs the NDK compiler passed as
 `CC`. `CPPFLAGS`, `CFLAGS`, `LDFLAGS` and `LDLIBS` are honoured.
+
+Linux AArch64 can also build natively with `platform=unix CC=gcc`. For Linux
+x86, `platform=linux-x86` (alias `linux-i686`) passes `-m32` to compilation and
+linking; native GCC on x86-64 needs its 32-bit development libraries installed.
+The i686 libretro buildbot uses `platform=unix ARCH=x86` with the same flags.
+The checker verifies the requested Linux/Windows architecture in the binary;
+32-bit libraries require a 32-bit RetroArch build.
+Linux ARMv7 (alias `linux-armhf`) uses ARMv7-A, VFPv3-D16 and the hard-float ABI;
+NEON is not required. Use an armhf compiler and a matching Linux frontend.
 
 On macOS, `platform=osx` builds for the compiler's native architecture;
 `osx-x86_64` and `osx-arm64` select an architecture explicitly. For libretro's
@@ -139,19 +153,24 @@ Clang's `MACOSX_DEPLOYMENT_TARGET`; the checker inspects the Mach-O architecture
 and minimum macOS version. An arm64 request earlier than macOS 11 is promoted
 to 11 by the Apple toolchain.
 
-Android ARM64 also supports the NDK's `ndk-build` interface used by the libretro
+Android ARM64 and ARMv7 support the NDK's `ndk-build` interface used by the libretro
 buildbot. With `NDK_ROOT` pointing to an installed Android NDK (tested with r26d):
 
 ```sh
 "$NDK_ROOT/ndk-build" -C jni APP_ABI=arm64-v8a -j4
 python3 check.py --core ./libs/arm64-v8a/libretro.so --platform android-arm64
+"$NDK_ROOT/ndk-build" -C jni APP_ABI=armeabi-v7a -j4
+python3 check.py --core ./libs/armeabi-v7a/libretro.so --platform android-armv7
 ```
 
 This recipe targets Android API 21+, uses the source list and required compiler
-flags in `Makefile.common`, and produces `libs/arm64-v8a/libretro.so`. Only ARM64
-is supported by this recipe. Both Android build recipes align ELF load segments
+flags in `Makefile.common`, and produces `libs/<abi>/libretro.so`. Supported ABIs
+are `arm64-v8a` and `armeabi-v7a`; omitting `APP_ABI` builds both. ARMv7 uses
+Android's softfp calling convention and the current NDK's
+[NEON baseline](https://developer.android.com/ndk/guides/abis#v7a). Both the standalone
+Makefile and NDK recipes align ELF load segments
 for devices with 4 KiB or 16 KiB memory pages, including with NDK r26d;
-`check.py` verifies ARM64 and the 16 KiB alignment in the resulting library.
+`check.py` verifies the requested ARM architecture and 16 KiB load alignment.
 This does not replace execution tests on an Android device and its frontend.
 Its `obj/` and `libs/` outputs are ignored by Git;
 use `"$NDK_ROOT/ndk-build" -C jni clean` to remove them. Release ZIPs are built

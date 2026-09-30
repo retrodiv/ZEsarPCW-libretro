@@ -24,12 +24,33 @@ identity. OpenPCW-OS's MIT terms require preserving its notices, without requiri
 source delivery. The emulator's complete GPL corresponding source, including
 its build tools and editable GPL assets, remains included in every package.
 
-Targets: `linux-x86_64`, `linux-aarch64`, `windows-x86_64`, `android-arm64`,
+Targets: `linux-x86_64`, `linux-x86`, `linux-aarch64`, `linux-armv7`,
+`windows-x86_64`, `windows-x86`, `android-arm64`, `android-armv7`,
 `macos-x86_64`, `macos-arm64`. The defaults use GCC, the corresponding GNU cross
 compiler, or native Apple Clang. Build macOS packages on the matching architecture.
 For Android, pass `--cc` and `--strip` pointing to the NDK's
-`aarch64-linux-android21-clang` and `llvm-strip`. `--jobs`, `--workdir` and
+`aarch64-linux-android21-clang` (ARM64) or `armv7a-linux-androideabi21-clang`
+(ARMv7), and `llvm-strip`. `--jobs`, `--workdir` and
 `--output` select parallelism, temporary storage and output location.
+
+The x86 targets are 32-bit: Linux defaults to `i686-linux-gnu-gcc` and
+`i686-linux-gnu-strip`; Windows defaults to `i686-w64-mingw32-gcc` and
+`i686-w64-mingw32-strip`. Linux AArch64 uses `aarch64-linux-gnu-gcc` and its
+matching strip tool. On Ubuntu, install `gcc-i686-linux-gnu`,
+`gcc-mingw-w64-i686` or `gcc-aarch64-linux-gnu` respectively. For example:
+
+```sh
+python3 package.py --platform linux-aarch64
+python3 package.py --platform linux-x86
+python3 package.py --platform windows-x86
+python3 package.py --platform linux-armv7
+```
+
+Linux ARMv7/armhf defaults to `arm-linux-gnueabihf-gcc` and
+`arm-linux-gnueabihf-strip` (`gcc-arm-linux-gnueabihf` on Ubuntu). It uses
+VFPv3-D16 with the hard-float ABI and does not require NEON. Android ARMv7 uses
+the distinct Android softfp ABI and requires NEON, as does NDK r26d; its library
+belongs in a 32-bit Android frontend.
 
 The script verifies `SOURCE_MANIFEST.sha256`, compares its complete file set and
 bytes to HEAD and checks the staged index. Untracked build outputs are not source
@@ -65,12 +86,31 @@ with its source files. Do not add build outputs or local data to that inventory.
 
 ## Release identity
 
-The core API's `library_version` and the `.info` file's `display_version` both
-use `13.0.1`. package.py checks that they agree and uses that value in ZIP names
-and RELEASE.json. A release of this version should use tag `v13.0.1` on the exact
-source commit; create the tag only when that revision is ready to publish.
+`src/pin.json` fixes the core's numeric version. Its generated
+`src/libretro/pcw_version.h` supplies the API's `library_version` through
+`PCW_CORE_VERSION`. The `.info` file uses `display_version = "Git"`.
+package.py checks these records and uses the numeric pin in ZIP names and
+RELEASE.json. A release tag should be `v` followed by that numeric version on
+the exact reviewed source commit; create it when that revision is ready to publish.
 A snapshot remains identified by its full manifest hash and `commit: null`.
 The version of the embedded OpenPCW-OS project is recorded separately.
+
+Before each normal source commit, advance the patch component and refresh the
+header and source manifest:
+
+```sh
+git config core.hooksPath .githooks
+python3 tools/version.py bump --dry-run
+python3 tools/version.py bump
+```
+
+Stage intended new source files and deletions before running the bump command;
+it uses the Git index inventory and excludes untracked local files.
+Then stage the resulting pin, header and manifest with the other source changes.
+The pre-commit hook checks the staged files, requires exactly one patch increment,
+and rejects inconsistent version records or stale source hashes. History operations
+(merge, rebase, cherry-pick and revert) retain their version records. An intentional
+series change or history amendment needs an explicitly approved `--no-verify` exception.
 
 ## Package contents and verification
 

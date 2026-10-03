@@ -3,5 +3,5 @@
 /* Generated from src/pin.json; use tools/version.py bump. */
 #ifndef PCW_VERSION_H
 #define PCW_VERSION_H
-#define PCW_CORE_VERSION "13.0.3"
+#define PCW_CORE_VERSION "13.0.4"
 #endif

@@ -119,17 +119,34 @@ endif
 
 all: $(TARGET)
 
+# Record effective caller settings. Keep link-only changes out of object rebuilds.
+build_quote = '$(subst ','"'"',$(1))'
+COMPILE_CONFIG := $(OBJDIR)/.compile-config
+LINK_CONFIG := $(OBJDIR)/.link-config
+COMPILE_SETTINGS := $(foreach name,CC CPPFLAGS CORE_CPPFLAGS CFLAGS CORE_CFLAGS MACOSX_DEPLOYMENT_TARGET SDKROOT PATH CPATH C_INCLUDE_PATH,$(call build_quote,$(name)=$($(name))))
+LINK_SETTINGS := $(foreach name,CC fpic SHARED LDFLAGS CORE_PLATFORM_FLAGS LDLIBS LIBS OBJECTS MACOSX_DEPLOYMENT_TARGET SDKROOT PATH LIBRARY_PATH,$(call build_quote,$(name)=$($(name))))
+
+$(COMPILE_CONFIG): FORCE
+	@mkdir -p $(dir $@)
+	@printf '%s\n' $(COMPILE_SETTINGS) > $@.tmp
+	@cmp -s $@.tmp $@ || cp $@.tmp $@
+
+$(LINK_CONFIG): FORCE
+	@mkdir -p $(dir $@)
+	@printf '%s\n' $(LINK_SETTINGS) > $@.tmp
+	@cmp -s $@.tmp $@ || cp $@.tmp $@
+
 check: $(TARGET)
 	python3 check.py --core ./$(TARGET) --platform $(platform)
 
 $(TARGET): $(BUILD_TARGET) FORCE
 	cp $< $@
 
-$(BUILD_TARGET): $(OBJECTS) src/libretro/libretro.exports src/libretro/libretro.exports.macho
+$(BUILD_TARGET): $(OBJECTS) $(LINK_CONFIG) src/libretro/libretro.exports src/libretro/libretro.exports.macho
 	$(CC) $(fpic) $(SHARED) $(LDFLAGS) $(CORE_PLATFORM_FLAGS) $(OBJECTS) -o $@ $(LDLIBS) $(LIBS)
 	@echo "built $@  (platform=$(platform))"
 
-$(OBJECTS): Makefile Makefile.common $(CORE_DIR)/libretro/libretro_sources.mk
+$(OBJECTS): $(COMPILE_CONFIG) Makefile Makefile.common $(CORE_DIR)/libretro/libretro_sources.mk
 
 $(OBJDIR)/%.o: %.c
 	@mkdir -p $(dir $@)

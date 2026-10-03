@@ -22,6 +22,58 @@ spec.loader.exec_module(CHECK)
 
 
 class MakeContracts(unittest.TestCase):
+    def test_same_platform_rebuilds_for_compiler_and_flags_and_only_relinks_for_ldflags(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            for name in ("Makefile", "Makefile.common", "src/libretro/libretro_sources.mk",
+                         "src/libretro/libretro.exports", "src/libretro/libretro.exports.macho"):
+                destination = root / name
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(ROOT / name, destination)
+            (root / "probe.c").write_text(
+                '__attribute__((visibility("default"))) '
+                'int retro_api_version(void) { return TEST_VALUE; }\n')
+            (root / "src/libretro/libretro.exports.macho").write_text("_retro_api_version\n")
+            platform = "osx" if CHECK.sys.platform == "darwin" else "unix"
+            settings = dict(CC='cc', CFLAGS='-O0 -DTEST_VALUE=1', CPPFLAGS='', LDFLAGS='', LDLIBS='')
+            environment = {k: v for k, v in os.environ.items() if k not in
+                {'MAKEFLAGS', 'MFLAGS', 'GNUMAKEFLAGS', 'MAKEFILES', 'CROSS_COMPILE',
+                 'LIBRETRO_APPLE_PLATFORM', 'LIBRETRO_APPLE_ISYSROOT'}}
+
+            def build(**changes):
+                settings.update(changes)
+                result = subprocess.run(['make', '--no-print-directory', '-j2', 'all',
+                    'platform=' + platform, 'SOURCES_C=probe.c',
+                    *[key + '=' + value for key, value in settings.items()]],
+                    cwd=root, env=environment, text=True, capture_output=True, timeout=30)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                return result.stdout
+
+            def value():
+                extension = '.dylib' if platform == 'osx' else '.so'
+                result = subprocess.check_output([CHECK.sys.executable, '-c',
+                    'import ctypes,sys; print(ctypes.CDLL(sys.argv[1]).retro_api_version())',
+                    str(root / ('zesarpcw_libretro' + extension))], text=True, timeout=10)
+                return int(result)
+
+            build()
+            self.assertEqual(value(), 1)
+            self.assertNotIn(' -c ', build())
+            self.assertIn(' -c ', build(CFLAGS='-O0 -DTEST_VALUE=2'))
+            self.assertEqual(value(), 2)
+            self.assertNotIn(' -c ', build())
+            self.assertIn(' -c ', build(CC='env BUILD_PROBE=1 cc'))
+            self.assertNotIn(' -c ', build())
+            flags = '-DNOTE=\'"two words"\''
+            self.assertIn(' -c ', build(CPPFLAGS=flags))
+            self.assertIn('CPPFLAGS=' + flags + '\n',
+                          (root / 'build' / platform / 'obj/.compile-config').read_text())
+            ldflags = '-Wl,-map,probe.map' if platform == 'osx' else '-Wl,-Map=probe.map'
+            self.assertNotIn(' -c ', build(LDFLAGS=ldflags))
+            self.assertTrue((root / 'probe.map').is_file())
+            self.assertIn(' -c ', build(CFLAGS='-O0 -DTEST_VALUE=1'))
+            self.assertEqual(value(), 1)
+
     def test_switching_platform_restores_its_library_without_recompiling(self):
         # Exercise the actual build rules with a small native C library. No
         # cross compiler is needed to reproduce the shared-output regression.

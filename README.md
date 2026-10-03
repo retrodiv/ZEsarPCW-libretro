@@ -127,13 +127,20 @@ make platform=unix check -j4 # build + libretro API/unit/runtime checks
 
 Objects, dependency files and the linked library live under `build/<platform>/`.
 Make copies the selected library to the repository root, including when switching
-back to a previously built platform. Run `make clean` before changing the compiler, SDK
-or flags for the same platform. `CC` from the environment or command line is
+back to a previously built platform. Changing the compiler command, compilation flags
+or SDK settings rebuilds that platform's objects automatically. Changing only linker
+flags relinks without recompiling. Clean first when replacing a compiler or SDK in
+place without changing its command or settings, and avoid concurrent builds with
+different settings for the same platform. `CC` from the environment or command line is
 respected, including MXE's `x86_64-w64-mingw32.static-gcc` with `platform=win64`.
 Without a caller-selected `CC`, Windows x86-64 uses `x86_64-w64-mingw32-gcc`,
 `win32` uses `i686-w64-mingw32-gcc`, macOS uses
 `clang` and other platforms use `gcc`. Android needs the NDK compiler passed as
 `CC`. `CPPFLAGS`, `CFLAGS`, `LDFLAGS` and `LDLIBS` are honoured.
+
+The core compiles the selected sources directly; its build does not run Autoconf
+or use `CONFIGURE_HOST` / `CONFIGURE_BUILD`. Cross builds select the actual
+compiler and flags as shown above.
 
 Linux AArch64 can also build natively with `platform=unix CC=gcc`. For Linux
 x86, `platform=linux-x86` (alias `linux-i686`) passes `-m32` to compilation and
